@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://ck6rpu0tnrvt3"]
+
+[ext_resource type="PackedScene" uid="uid://bivmyi7hgifhk" path="res://Tasks/T1Springs/preset.tscn" id="1_d3xi2"]
+[ext_resource type="Script" uid="uid://d07665j0u4xxh" path="res://Common/spring.gd" id="2_7lu8n"]
+[ext_resource type="Script" uid="uid://its3b7decji2" path="res://Common/simple_movement.gd" id="3_fm2yn"]
+[ext_resource type="Texture2D" uid="uid://b25widnltady0" path="res://wall.svg" id="4_4ihax"]
+[ext_resource type="PackedScene" uid="uid://dge7gf1tre3x4" path="res://Tasks/T1Springs/draggable_ball.tscn" id="5_pxxlh"]
+
+[node name="TwoSprings" unique_id=1647614633 instance=ExtResource("1_d3xi2")]
+
+[node name="PseudoSpring" type="Line2D" parent="." index="1" unique_id=2130888821 node_paths=PackedStringArray("target_a", "target_b")]
+position = Vector2(306, 108.99994)
+points = PackedVector2Array(-114, -108.99994, -88.01923, -123.99993, -77.80347, -119.5057, -81.08769, -138.39417, -66.371925, -126.105705, -69.65616, -144.99416, -54.94039, -132.70569, -58.224617, -151.59416, -43.50885, -139.30568, -46.793076, -158.19415, -32.077316, -145.90569, -35.36154, -164.79416, -20.645773, -152.50569, -23.929998, -171.39415, -9.214235, -159.10568, -12.498465, -177.99416, 2.2173061, -165.70567, -1.0669231, -184.59415, 13.64884, -172.30568, 10.364611, -191.19414, 25.080381, -178.90567, 26.29615, -189.99991, 52.276917, -204.99991)
+width = 2.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+script = ExtResource("2_7lu8n")
+target_a = NodePath("../LeftBall")
+target_b = NodePath("../SpringOrigin/Wall")
+amplitude = 3.0
+coils = 10
+target_child_script = ExtResource("3_fm2yn")
+
+[node name="PseudoSpring2" type="Line2D" parent="." index="2" unique_id=1170397708 node_paths=PackedStringArray("target_a", "target_b")]
+position = Vector2(325, 22.999939)
+points = PackedVector2Array(-325, -22.999939, -355, -22.999939, -361.6, -31.999939, -368.2, -13.999939, -374.8, -31.999939, -381.4, -13.999939, -388, -31.999939, -394.6, -13.999939, -401.2, -31.999939, -407.8, -13.999939, -414.4, -31.999939, -421, -13.999939, -427.6, -31.999939, -434.2, -13.999939, -440.8, -31.999939, -447.4, -13.999939, -454, -31.999939, -460.6, -13.999939, -467.2, -31.999939, -473.8, -13.999939, -480.4, -31.999939, -487, -22.999939, -517, -22.999939)
+width = 2.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+script = ExtResource("2_7lu8n")
+target_a = NodePath("../RightBall")
+target_b = NodePath("../Wall3")
+amplitude = 3.0
+coils = 10
+target_child_script = ExtResource("3_fm2yn")
+
+[node name="PseudoSpring3" type="Line2D" parent="." index="3" unique_id=1434380941 node_paths=PackedStringArray("target_a", "target_b")]
+position = Vector2(1102, 361.99997)
+points = PackedVector2Array(-910, -361.99997, -940, -361.99997, -946.6, -370.99997, -953.2, -352.99997, -959.8, -370.99997, -966.4, -352.99997, -973, -370.99997, -979.6, -352.99997, -986.2, -370.99997, -992.8, -352.99997, -999.4, -370.99997, -1006, -352.99997, -1012.6, -370.99997, -1019.2, -352.99997, -1025.8, -370.99997, -1032.4, -352.99997, -1039, -370.99997, -1045.6, -352.99997, -1052.2, -370.99997, -1058.8, -352.99997, -1065.4, -370.99997, -1072, -361.99997, -1102, -361.99997)
+width = 2.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+script = ExtResource("2_7lu8n")
+target_a = NodePath("../LeftBall")
+target_b = NodePath("../RightBall")
+amplitude = 3.0
+coils = 10
+target_child_script = ExtResource("3_fm2yn")
+
+[node name="SpringOrigin" type="Node2D" parent="." index="4" unique_id=2038508308]
+position = Vector2(192, 0)
+rotation = -2.094395
+
+[node name="Wall" type="Sprite2D" parent="SpringOrigin" index="0" unique_id=925698533]
+position = Vector2(0, 192)
+rotation = 1.5707964
+texture = ExtResource("4_4ihax")
+
+[node name="Wall3" type="Sprite2D" parent="." index="5" unique_id=672992360]
+position = Vector2(-192, 0)
+rotation = -3.1415925
+texture = ExtResource("4_4ihax")
+
+[node name="LeftBall" parent="." index="6" unique_id=830556536 instance=ExtResource("5_pxxlh")]
+position = Vector2(192, 0)
+
+[node name="RightBall" parent="." index="7" unique_id=716477060 instance=ExtResource("5_pxxlh")]

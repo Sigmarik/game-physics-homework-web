@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://cfx2d6quifk66"]
+
+[ext_resource type="PackedScene" uid="uid://bivmyi7hgifhk" path="res://Tasks/T1Springs/preset.tscn" id="1_6hijn"]
+[ext_resource type="PackedScene" uid="uid://dge7gf1tre3x4" path="res://Tasks/T1Springs/draggable_ball.tscn" id="4_cj6oj"]
+[ext_resource type="Texture2D" uid="uid://b25widnltady0" path="res://wall.svg" id="4_yjphp"]
+[ext_resource type="Script" uid="uid://its3b7decji2" path="res://Common/simple_movement.gd" id="6_mhhhl"]
+[ext_resource type="Script" uid="uid://d07665j0u4xxh" path="res://Common/spring.gd" id="8_spce2"]
+
+[node name="TwoSprings" unique_id=1647614633 instance=ExtResource("1_6hijn")]
+metadata/spring_solver_mode = 0
+
+[node name="PseudoSpring" type="Line2D" parent="." index="1" unique_id=1160513357 node_paths=PackedStringArray("target_a", "target_b")]
+position = Vector2(39, -70)
+points = PackedVector2Array(-39, 70, -39.000004, 100, -48.000004, 106.6, -30.000004, 113.2, -48.000004, 119.8, -30.000004, 126.4, -48.000008, 133, -30.000008, 139.6, -48.000008, 146.2, -30.000008, 152.8, -48.000008, 159.4, -30.000008, 166, -48.000008, 172.6, -30.000008, 179.20001, -48.000008, 185.79999, -30.000008, 192.4, -48.000008, 199, -30.000011, 205.6, -48.00001, 212.20001, -30.000011, 218.79999, -48.00001, 225.4, -39.00001, 232, -39.000015, 262)
+width = 2.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+script = ExtResource("8_spce2")
+target_a = NodePath("../Ball")
+target_b = NodePath("../SpringOrigin/Wall2")
+amplitude = 3.0
+coils = 10
+target_child_script = ExtResource("6_mhhhl")
+
+[node name="PseudoSpring2" type="Line2D" parent="." index="2" unique_id=1517592973 node_paths=PackedStringArray("target_a", "target_b")]
+position = Vector2(58, -156)
+points = PackedVector2Array(-58, 156, -83.98076, 141, -85.196526, 129.90576, -99.91229, 142.19423, -96.62807, 123.30576, -111.34383, 135.59422, -108.0596, 116.70577, -122.77537, 128.99423, -119.491135, 110.10577, -134.20691, 122.39422, -130.92267, 103.50577, -145.63843, 115.79422, -142.3542, 96.90576, -157.06998, 109.19422, -153.78574, 90.30576, -168.5015, 102.594215, -165.21727, 83.70576, -179.93304, 95.99421, -176.6488, 77.10576, -191.36456, 89.39422, -188.08035, 70.50576, -198.29611, 74.999985, -224.27687, 59.999985)
+width = 2.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+script = ExtResource("8_spce2")
+target_a = NodePath("../Ball")
+target_b = NodePath("../SpringOrigin/Wall")
+amplitude = 3.0
+coils = 10
+target_child_script = ExtResource("6_mhhhl")
+
+[node name="Ball" parent="." index="3" unique_id=830556536 instance=ExtResource("4_cj6oj")]
+
+[node name="SpringOrigin" type="Node2D" parent="." index="4" unique_id=307297057]
+rotation = 2.0943952
+
+[node name="Wall" type="Sprite2D" parent="SpringOrigin" index="0" unique_id=97628833]
+position = Vector2(0, 192)
+rotation = 1.5707964
+texture = ExtResource("4_yjphp")
+
+[node name="Wall2" type="Sprite2D" parent="SpringOrigin" index="1" unique_id=1011792691]
+position = Vector2(166.27689, -96)
+rotation = -0.5235988
+texture = ExtResource("4_yjphp")

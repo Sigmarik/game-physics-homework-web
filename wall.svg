@@ -1,0 +1,15 @@
+<svg width="60" height="150" viewBox="-15 0 30 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main wall line (thick) -->
+  <line x1="0" y1="20" x2="0" y2="130" stroke="white" stroke-width="4"/>
+  
+  <!-- Diagonal hatch lines (dashes) -->
+  <path d="M0,25 L20,35
+           M0,45 L20,55
+           M0,65 L20,75
+           M0,85 L20,95
+           M0,105 L20,115
+           M0,125 L20,135" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none"/>
+</svg>

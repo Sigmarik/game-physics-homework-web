@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bl3fd7o5lq4ew"]
+
+[ext_resource type="Script" uid="uid://cg84dtu05u2m4" path="res://Common/level_transition_button.gd" id="1_ig7tw"]
+
+[node name="Node2D" type="Node2D" unique_id=1789970128]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=269860591]
+
+[node name="Button" type="Button" parent="CanvasLayer" unique_id=1352004599]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 176.0
+offset_bottom = 64.0
+text = "T1 Two Springs"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T1Springs/two_springs.tscn"
+
+[node name="Button2" type="Button" parent="CanvasLayer" unique_id=302410656]
+offset_left = 24.0
+offset_top = 80.0
+offset_right = 176.0
+offset_bottom = 120.0
+text = "T1 Three Springs"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T1Springs/three_springs.tscn"
+
+[node name="Button3" type="Button" parent="CanvasLayer" unique_id=946426327]
+offset_left = 24.0
+offset_top = 136.0
+offset_right = 176.0
+offset_bottom = 176.0
+tooltip_text = "Balls"
+text = "T1 Two Balls"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T1Springs/two_balls.tscn"

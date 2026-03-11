@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://bivmyi7hgifhk"]
+
+[ext_resource type="Script" uid="uid://cg84dtu05u2m4" path="res://Common/level_transition_button.gd" id="2_nou83"]
+[ext_resource type="Script" uid="uid://b6e3vdgvdipns" path="res://Common/solver_selection.gd" id="2_skr6v"]
+[ext_resource type="Script" uid="uid://cimyl7vdrjd5q" path="res://Common/energy_plot.gd" id="3_yeslm"]
+
+[node name="TwoSprings" type="Node2D" unique_id=1647614633]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1926751929]
+
+[node name="ToMenuButton" type="Button" parent="CanvasLayer" unique_id=1905021721]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 160.0
+offset_bottom = 64.0
+text = "To Main Menu"
+script = ExtResource("2_nou83")
+next_level_scene = "res://main.tscn"
+
+[node name="OptionButton" type="OptionButton" parent="CanvasLayer" unique_id=981846413]
+offset_left = 24.0
+offset_top = 80.0
+offset_right = 183.0
+offset_bottom = 111.0
+selected = 0
+item_count = 4
+popup/item_0/text = "Explicit Euler"
+popup/item_0/id = 0
+popup/item_1/text = "Implicit Euler"
+popup/item_1/id = 1
+popup/item_2/text = "Symplectic Euler"
+popup/item_2/id = 2
+popup/item_3/text = "Velocity Verlet"
+popup/item_3/id = 3
+script = ExtResource("2_skr6v")
+
+[node name="BottomLeft" type="Control" parent="CanvasLayer" unique_id=494931007]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_right = 40.0
+grow_vertical = 0
+
+[node name="EnergyPlot" type="Line2D" parent="CanvasLayer/BottomLeft" unique_id=2092460767]
+z_index = -1
+position = Vector2(0, -160)
+width = 3.0
+joint_mode = 1
+begin_cap_mode = 2
+end_cap_mode = 2
+script = ExtResource("3_yeslm")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=96803616]

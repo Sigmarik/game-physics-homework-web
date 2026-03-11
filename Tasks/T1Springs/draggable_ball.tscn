@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://dge7gf1tre3x4"]
+
+[ext_resource type="Script" uid="uid://vbmnhq4exmwn" path="res://Common/draggable_area.gd" id="1_mmjxc"]
+[ext_resource type="Script" uid="uid://b77klidmoq4ca" path="res://Common/trajectory.gd" id="2_pva40"]
+[ext_resource type="Texture2D" uid="uid://c7g5ke0yw0je3" path="res://ball.svg" id="3_r7xen"]
+[ext_resource type="Script" uid="uid://its3b7decji2" path="res://Common/simple_movement.gd" id="4_3xdo0"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_yjphp"]
+radius = 24.0
+
+[node name="Ball" type="Area2D" unique_id=830556536]
+script = ExtResource("1_mmjxc")
+
+[node name="Trajectory" type="Line2D" parent="." unique_id=1875960391]
+z_index = -1
+width = 3.0
+default_color = Color(0, 0, 0, 1)
+script = ExtResource("2_pva40")
+max_points = 500
+spacing_distance = 4.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1151205617]
+texture = ExtResource("3_r7xen")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=834181897]
+shape = SubResource("CircleShape2D_yjphp")
+
+[node name="Physics" type="Node2D" parent="." unique_id=1591435935]
+script = ExtResource("4_3xdo0")

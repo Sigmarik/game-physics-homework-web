@@ -1,0 +1,18 @@
+<svg width="300" height="50" viewBox="0 0 300 40" xmlns="http://www.w3.org/2000/svg">
+  <path d="M00,20 
+           L30,20 
+           L42,5 L54,35 
+           L66,5 L78,35 
+           L90,5 L102,35
+           L114,5 L126,35 
+           L138,5 L150,35 
+           L162,5 L174,35 
+           L186,5 L198,35 
+           L210,5 L222,35 
+           L234,5 L246,35 
+           L258,5 L270,20 
+           L300,20" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none" />
+</svg>
