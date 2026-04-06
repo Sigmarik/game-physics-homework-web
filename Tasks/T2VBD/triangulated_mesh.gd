@@ -45,22 +45,90 @@ func deduplicate_vertices(vertices: PackedVector3Array, eps: float) -> PackedVec
 # ------------------------------------------------------------------------------
 func delaunay_3d(vertices: PackedVector3Array) -> Array:
 	var indices = Geometry3D.tetrahedralize_delaunay(vertices)
-	edges = []
+	
+	# Build list of tetrahedra (each = [v0, v1, v2, v3])
+	var tets = []
 	for i in range(0, indices.size(), 4):
-		var v0 = indices[i]
-		var v1 = indices[i + 1]
-		var v2 = indices[i + 2]
-		var v3 = indices[i + 3]
-		# Add edges of the tetrahedron (6 unique edges)
-		var edge_set = [
-			Vector2(v0, v1), Vector2(v0, v2), Vector2(v0, v3),
-			Vector2(v1, v2), Vector2(v1, v3),
-			Vector2(v2, v3)
+		tets.append([
+			indices[i],   indices[i+1],
+			indices[i+2], indices[i+3]
+		])
+	
+	# Map each face (sorted triplet) to the indices of tetrahedra that contain it
+	# Use a string key to avoid any Vector3i comparison pitfalls
+	var face_to_tets = {}
+	for tet_idx in range(tets.size()):
+		var tet = tets[tet_idx]
+		# The four faces of a tetrahedron
+		var faces = [
+			[tet[0], tet[1], tet[2]],
+			[tet[0], tet[1], tet[3]],
+			[tet[0], tet[2], tet[3]],
+			[tet[1], tet[2], tet[3]]
 		]
-		for edge in edge_set:
-			if not edges.has(edge) and not edges.has(Vector2(edge.y, edge.x)):
-				edges.append(edge)
-	return edges
+		for face in faces:
+			face.sort()
+			var key = "%d,%d,%d" % [face[0], face[1], face[2]]
+			if not face_to_tets.has(key):
+				face_to_tets[key] = []
+			face_to_tets[key].append(tet_idx)
+	
+	# Set of unique edges (using a string key for simplicity)
+	var edge_keys = {}
+	
+	# 1. Add all edges from tetrahedra
+	for tet in tets:
+		var v0 = tet[0]
+		var v1 = tet[1]
+		var v2 = tet[2]
+		var v3 = tet[3]
+		var edges = [
+			[v0, v1], [v0, v2], [v0, v3],
+			[v1, v2], [v1, v3],
+			[v2, v3]
+		]
+		for e in edges:
+			var key = "%d,%d" % [min(e[0], e[1]), max(e[0], e[1])]
+			edge_keys[key] = true
+	
+	# 2. Add support beams (opposite tips) for every shared face
+	for face_key in face_to_tets:
+		var tet_indices = face_to_tets[face_key]
+		if tet_indices.size() != 2:
+			continue  # only interior faces (shared by exactly two tets)
+		
+		var tet_a = tets[tet_indices[0]]
+		var tet_b = tets[tet_indices[1]]
+		
+		# Parse the face vertices from the key
+		var parts = face_key.split(",")
+		var face_verts = [int(parts[0]), int(parts[1]), int(parts[2])]
+		
+		# Find the vertex in each tetra that is NOT in the shared face
+		var tip_a = -1
+		var tip_b = -1
+		for v in tet_a:
+			if not v in face_verts:
+				tip_a = v
+				break
+		for v in tet_b:
+			if not v in face_verts:
+				tip_b = v
+				break
+		
+		if tip_a == -1 or tip_b == -1:
+			continue  # should never happen for a valid tetra
+		
+		var beam_key = "%d,%d" % [min(tip_a, tip_b), max(tip_a, tip_b)]
+		edge_keys[beam_key] = true
+	
+	# Convert keys back to Vector2 array
+	var edges_out = []
+	for key in edge_keys:
+		var parts = key.split(",")
+		edges_out.append(Vector2(int(parts[0]), int(parts[1])))
+	
+	return edges_out
 
 # ------------------------------------------------------------------------------
 # Draw edges using DebugDraw3D addon

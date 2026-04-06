@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bqc3mue5jedj4"]
 
 [ext_resource type="Material" uid="uid://b262b64ls6j0w" path="res://Tasks/T2VBD/M_preview_mesh.tres" id="1_ews0e"]
-[ext_resource type="ArrayMesh" uid="uid://cwj0aq6vao7eu" path="res://Tasks/T2VBD/multicube.obj" id="1_vc2t1"]
+[ext_resource type="ArrayMesh" uid="uid://c3p3k7gle657d" path="res://Tasks/T2VBD/tetra.obj" id="2_fk2q0"]
 [ext_resource type="ArrayMesh" uid="uid://l3s751nuxbo4" path="res://Tasks/T2VBD/big_plane.obj" id="2_gbtp8"]
 [ext_resource type="Sky" uid="uid://cegi4c8o3hdge" path="res://Tasks/T2VBD/gradient_sky.tres" id="2_l81hj"]
 [ext_resource type="Script" uid="uid://dwuj17pddsg47" path="res://Tasks/T2VBD/triangulated_mesh.gd" id="3_fk2q0"]
@@ -20,16 +20,16 @@ ambient_light_color = Color(1, 1, 1, 1)
 [node name="Preset" type="Node3D" unique_id=1403897553]
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1649205508]
-transform = Transform3D(0.70710677, -0.41262594, 0.5742298, 0, 0.81208354, 0.5835412, -0.70710677, -0.41262594, 0.5742298, 10, 10, 10)
+transform = Transform3D(0.70710677, -0.41262594, 0.5742298, 0, 0.81208354, 0.5835412, -0.70710677, -0.41262594, 0.5742298, 15.774248, 15.86788, 15.774248)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=778099685]
 transform = Transform3D(0.50161076, 0.8092571, 0.3057608, 0.05394075, -0.38201278, 0.92258155, 0.8634102, -0.44628385, -0.23527366, -0.12959528, 0.08901119, 0)
 shadow_enabled = true
 
 [node name="Multicube" type="MeshInstance3D" parent="." unique_id=1098579943]
-transform = Transform3D(3.376144, 0, 0, 0, 3.376144, 0, 0, 0, 3.376144, 0, 4.2551694, 0)
+transform = Transform3D(0.73596543, 0, 3.2949512, 0, 3.376144, 0, -3.2949512, 0, 0.73596543, 0, 4.2551694, 0)
 material_override = ExtResource("1_ews0e")
-mesh = ExtResource("1_vc2t1")
+mesh = ExtResource("2_fk2q0")
 script = ExtResource("3_fk2q0")
 packed_scene = ExtResource("7_j0dfc")
 
