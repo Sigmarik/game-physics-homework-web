@@ -178,11 +178,11 @@ func _on_input_event(camera: Node, event: InputEvent, click_position: Vector3, c
 				drag_offset = movable_node.global_position - mouse_pos_3d
 			else:
 				dragging = false
-		else:
-			# Stop dragging
-			dragging = false
 
 func _input(event: InputEvent):
+	if dragging and event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			dragging = false
 	if dragging and event is InputEventMouseMotion:
 		var camera = get_viewport().get_camera_3d()
 		if not camera:

@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 		var extrapolated_position = old_pos + vel * delta_time + gravity * delta_time * delta_time
 		point.planned_position = extrapolated_position
 
-	for iteration in range(0, 2):
+	for iteration in range(0, 4):
 		for point in points:
 			if point.fixed_in_place or point.dragging: continue
 			var old_pos = point.global_position
