@@ -129,7 +129,6 @@ func build_vertex_to_instance_mapping() -> void:
 
 # ------------------------------------------------------------------------------
 func update_mesh_from_instances() -> void:
-	# Guard against node not being in tree (prevents the error)
 	if not is_inside_tree():
 		return
 	if instances.is_empty() or original_surface_arrays.is_empty():
@@ -157,6 +156,46 @@ func update_mesh_from_instances() -> void:
 	mesh = new_mesh
 
 # ------------------------------------------------------------------------------
+func setup_springs() -> void:
+	if instances.is_empty() or edges.is_empty():
+		return
+	
+	# Get the SoftBodySpring class from the first instance's script
+	var first_script = instances[0].get_script()
+	if not first_script:
+		push_error("Instances have no script – cannot create springs.")
+		return
+	
+	var SpringClass = first_script.get("SoftBodySpring")
+	if not SpringClass:
+		push_error("Script does not define SoftBodySpring inner class.")
+		return
+	
+	for edge in edges:
+		var idx_a = int(edge.x)
+		var idx_b = int(edge.y)
+		var node_a = instances[idx_a]
+		var node_b = instances[idx_b]
+		var pos_a = unique_verts[idx_a]
+		var pos_b = unique_verts[idx_b]
+		
+		# Compute initial rest length (world distance)
+		var rest_len = pos_a.distance_to(pos_b)
+		print(rest_len)
+		
+		# Create spring for node_a
+		var spring_a = SpringClass.new()
+		spring_a.other_node = node_b
+		spring_a.rest_length = rest_len
+		node_a.springs.append(spring_a)
+		
+		# Create spring for node_b
+		var spring_b = SpringClass.new()
+		spring_b.other_node = node_a
+		spring_b.rest_length = rest_len
+		node_b.springs.append(spring_b)
+
+# ------------------------------------------------------------------------------
 func _ready() -> void:
 	if mesh == null:
 		print("Error: No mesh assigned to MeshInstance3D.")
@@ -175,7 +214,9 @@ func _ready() -> void:
 			var instance = packed_scene.instantiate()
 			get_tree().root.add_child.call_deferred(instance)
 			set_world_pos.call_deferred(instance, v)
+			instance.last_frame_position = v
 			instances.append(instance)
+			instance.add_to_group("vbd_point")
 		print("Spawned %d objects (original vertex count: %d)" % [unique_verts.size(), world_verts.size()])
 	else:
 		print("Warning: No packed_scene assigned. Object spawning skipped.")
@@ -186,11 +227,13 @@ func _ready() -> void:
 		edges = delaunay_3d(unique_verts)
 		print("Generated %d Delaunay edges." % edges.size())
 		draw_edges(edges, unique_verts, Color.CYAN)
+		
+		# Add springs for each edge
+		setup_springs.call_deferred()
 	else:
 		print("Not enough unique vertices (need ≥4) for Delaunay triangulation.")
 	
 	show()
-	# Do NOT call update_mesh_from_instances() here – it will run in _process after the node is ready
 
 # ------------------------------------------------------------------------------
 func _process(delta: float) -> void:
