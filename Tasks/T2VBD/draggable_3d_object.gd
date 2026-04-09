@@ -7,7 +7,7 @@ var drag_offset = Vector3.ZERO    # Offset from object to mouse projection
 
 var fixed_in_place = false  # If true, object won't move (can be used for fixed points in a soft body)
 
-const SPRING_STIFFNESS = 1000.0 # Spring stiffness for connected springs (if any)
+const SPRING_STIFFNESS = 100.0 # Spring stiffness for connected springs (if any)
 
 class SoftBodySpring:
 	var other_node: Node3D
@@ -16,6 +16,7 @@ class SoftBodySpring:
 var last_frame_position
 var mass = 1.0
 var springs: Array[SoftBodySpring]
+var planned_position = Vector3.ZERO
 
 # The actual node to move (usually self, but can be another child if needed)
 @export var movable_node: Node3D = null
@@ -23,7 +24,7 @@ var springs: Array[SoftBodySpring]
 func get_spring_force() -> Vector3:
 	var total_force = Vector3.ZERO
 	for spring in springs:
-		var delta_position = movable_node.global_position - spring.other_node.movable_node.global_position
+		var delta_position = movable_node.global_position - spring.other_node.planned_position
 		var normalized_delta = delta_position.normalized()
 		var delta_length = delta_position.length() - spring.rest_length
 		total_force -= normalized_delta * delta_length * SPRING_STIFFNESS
@@ -38,7 +39,7 @@ func outer_product_from_vector3(v: Vector3) -> DenseMatrix:
 func get_spring_hessian() -> DenseMatrix:
 	var hessian = DenseMatrix.zero(3)
 	for spring in springs:
-		var delta_position = movable_node.global_position - spring.other_node.movable_node.global_position
+		var delta_position = movable_node.global_position - spring.other_node.planned_position
 		var length = delta_position.length()
 		var local_hessian : DenseMatrix = DenseMatrix.identity(3)
 		local_hessian.multiply_scaler_in_place(1 - spring.rest_length / length)

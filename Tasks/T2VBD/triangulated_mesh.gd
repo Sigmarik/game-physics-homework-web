@@ -140,17 +140,59 @@ func update_mesh_from_instances() -> void:
 		var old_surf = original_surface_arrays[surf_idx]
 		var old_vertices: PackedVector3Array = old_surf[Mesh.ARRAY_VERTEX]
 		
+		# --- Build new vertex positions ---
 		var new_vertices = PackedVector3Array()
 		new_vertices.resize(old_vertices.size())
-		
 		for vert_idx in range(old_vertices.size()):
 			var inst_idx = vertex_to_instance_idx[vert_idx]
 			var inst_world_pos = instances[inst_idx].global_position
 			var local_pos = global_transform.affine_inverse() * inst_world_pos
 			new_vertices[vert_idx] = local_pos
 		
+		# --- Recalculate normals ---
+		# Retrieve index array (if present)
+		var indices: PackedInt32Array
+		if old_surf.size() > Mesh.ARRAY_INDEX and old_surf[Mesh.ARRAY_INDEX] != null:
+			indices = old_surf[Mesh.ARRAY_INDEX]
+		else:
+			indices = PackedInt32Array()
+		
+		# If no index array, assume vertices are in triangle strips (consecutive triplets)
+		if indices.is_empty():
+			indices.resize(new_vertices.size())
+			for i in range(new_vertices.size()):
+				indices[i] = i
+		
+		var new_normals = PackedVector3Array()
+		new_normals.resize(new_vertices.size())
+		for i in range(new_normals.size()):
+			new_normals[i] = Vector3.ZERO
+		
+		# Accumulate face normals
+		for tri in range(0, indices.size(), 3):
+			var i0 = indices[tri]
+			var i1 = indices[tri + 1]
+			var i2 = indices[tri + 2]
+			
+			var v0 = new_vertices[i0]
+			var v1 = new_vertices[i1]
+			var v2 = new_vertices[i2]
+			
+			var face_normal = (v1 - v0).cross(v2 - v0).normalized()
+			new_normals[i0] += face_normal
+			new_normals[i1] += face_normal
+			new_normals[i2] += face_normal
+		
+		# Normalise accumulated normals
+		for i in range(new_normals.size()):
+			var n = new_normals[i]
+			if n != Vector3.ZERO:
+				new_normals[i] = -n.normalized()
+		
+		# --- Build new surface ---
 		var new_surf = old_surf.duplicate()
 		new_surf[Mesh.ARRAY_VERTEX] = new_vertices
+		new_surf[Mesh.ARRAY_NORMAL] = new_normals
 		new_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, new_surf)
 	
 	mesh = new_mesh
@@ -242,10 +284,10 @@ func _process(delta: float) -> void:
 	
 	update_mesh_from_instances()
 	
-	var current_positions = PackedVector3Array()
-	for inst in instances:
-		current_positions.append(inst.global_position)
-	draw_edges(edges, current_positions, Color.RED)
+	# var current_positions = PackedVector3Array()
+	# for inst in instances:
+	# 	current_positions.append(inst.global_position)
+	# draw_edges(edges, current_positions, Color.RED)
 
 # ------------------------------------------------------------------------------
 func set_world_pos(node, position):
