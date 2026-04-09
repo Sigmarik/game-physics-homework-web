@@ -259,7 +259,7 @@ func _ready() -> void:
 	if packed_scene != null:
 		for v in unique_verts:
 			var instance = packed_scene.instantiate()
-			get_tree().root.add_child.call_deferred(instance)
+			get_tree().current_scene.add_child.call_deferred(instance)
 			set_world_pos.call_deferred(instance, v)
 			instance.last_frame_position = v
 			instances.append(instance)
