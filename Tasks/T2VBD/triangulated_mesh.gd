@@ -223,19 +223,24 @@ func setup_springs() -> void:
 		
 		# Compute initial rest length (world distance)
 		var rest_len = pos_a.distance_to(pos_b)
-		print(rest_len)
+		var rest_vector = pos_b - pos_a
 		
 		# Create spring for node_a
 		var spring_a = SpringClass.new()
 		spring_a.other_node = node_b
 		spring_a.rest_length = rest_len
+		spring_a.rest_vector = rest_vector
 		node_a.springs.append(spring_a)
 		
 		# Create spring for node_b
 		var spring_b = SpringClass.new()
 		spring_b.other_node = node_a
 		spring_b.rest_length = rest_len
+		spring_a.rest_vector = -rest_vector
 		node_b.springs.append(spring_b)
+
+	for instance in instances:
+		instance.capture_volume_springs()
 
 # ------------------------------------------------------------------------------
 func _ready() -> void:

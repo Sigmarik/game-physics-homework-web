@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 		var extrapolated_position = old_pos + vel * delta_time + gravity * delta_time * delta_time
 		point.planned_position = extrapolated_position
 
-	for iteration in range(0, 1):
+	for iteration in range(0, 2):
 		for point in points:
 			if point.fixed_in_place or point.dragging: continue
 			var old_pos = point.global_position
@@ -62,12 +62,16 @@ func _process(delta: float) -> void:
 			
 			var extrapolated_position = old_pos + vel * delta_time + gravity * delta_time * delta_time
 
-			var force_component = -point.mass / (delta_time * delta_time) * (old_pos - extrapolated_position) + point.get_spring_force()
+			var neohookean_info = point.get_neohookean_info()
+			var energy_derivative: Vector3 = -point.get_spring_force()# + neohookean_info.derivative
+			var energy_hessian: DenseMatrix = point.get_spring_hessian()#.add_dense(neohookean_info.hessian)
+
+			var force_component = -point.mass / (delta_time * delta_time) * (old_pos - extrapolated_position) - energy_derivative
 
 			var hessian_identity_multiplier: float = point.mass / (delta_time * delta_time)
 			var hessian_identity_component = DenseMatrix.identity(3)
 			hessian_identity_component.multiply_scaler_in_place(hessian_identity_multiplier)
-			var hessian = hessian_identity_component.add_dense(point.get_spring_hessian())
+			var hessian = hessian_identity_component.add_dense(energy_hessian)
 			var delta_position = solve_linear_system(hessian, force_component)
 
 			point.planned_position = old_pos + delta_position

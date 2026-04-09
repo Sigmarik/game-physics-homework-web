@@ -9,9 +9,18 @@ var fixed_in_place = false  # If true, object won't move (can be used for fixed 
 
 const SPRING_STIFFNESS = 100.0 # Spring stiffness for connected springs (if any)
 
+const EXPANSION_RESISTANCE = 1000000.0
+const TORQUE_RESISTANCE = 100000.0
+
+var volume_axis_a = 0
+var volume_axis_b = 0
+var volume_axis_c = 0
+var default_volume = 0
+
 class SoftBodySpring:
 	var other_node: Node3D
 	var rest_length: float
+	var rest_vector: Vector3
 
 var last_frame_position
 var mass = 1.0
@@ -20,6 +29,97 @@ var planned_position = Vector3.ZERO
 
 # The actual node to move (usually self, but can be another child if needed)
 @export var movable_node: Node3D = null
+
+func capture_volume_springs() -> void:
+	var highest_metric = 0
+	for i in range(0, springs.size()):
+		for j in range(i + 1, springs.size()):
+			for h in range(j + 1, springs.size()):
+				var vec_a = springs[i].rest_vector
+				var vec_b = springs[j].rest_vector
+				var vec_c = springs[h].rest_vector
+				var metric = vec_a.normalized().cross(vec_b.normalized()).dot(vec_c.normalized())
+				if abs(metric) > highest_metric:
+					highest_metric = abs(metric)
+					var volume = vec_a.cross(vec_b).dot(vec_c)
+					default_volume = volume
+					if metric > 0:
+						volume_axis_a = i
+						volume_axis_b = j
+						volume_axis_c = h
+					else:
+						volume_axis_a = i
+						volume_axis_b = h
+						volume_axis_c = j
+	print(default_volume, " ", springs.size())
+
+func get_neohookean_energy_at(point: Vector3) -> float:
+	if default_volume == 0: return 0
+
+	var spring_a : SoftBodySpring = springs[volume_axis_a]
+	var spring_b : SoftBodySpring = springs[volume_axis_b]
+	var spring_c : SoftBodySpring = springs[volume_axis_c]
+	var vec_a = spring_a.other_node.planned_position - point
+	var vec_b = spring_b.other_node.planned_position - point
+	var vec_c = spring_c.other_node.planned_position - point
+
+	var current_volume = vec_a.cross(vec_b).dot(vec_c)
+	var torque_a = vec_a.length() / spring_a.rest_length
+	var torque_b = vec_b.length() / spring_b.rest_length
+	var torque_c = vec_c.length() / spring_c.rest_length
+	
+	var volume_penalty = current_volume / default_volume - 1
+	volume_penalty *= volume_penalty
+	var delta_torque = torque_a * torque_a + torque_b * torque_b + torque_c * torque_c - 1
+
+	return EXPANSION_RESISTANCE * volume_penalty / 2 + TORQUE_RESISTANCE * volume_penalty / 2
+
+func get_neohookean_energy() -> float:
+	return get_neohookean_energy_at(movable_node.global_position)
+
+const DERIVATIVE_EPS = 0.1
+
+class DerivativeHessian:
+	var derivative: Vector3
+	var hessian: DenseMatrix
+
+func get_neohookean_info() -> DerivativeHessian:
+	# [Internal screaming]
+	var en = []
+	var origin = movable_node.global_position
+	for i in range(-1, 2):
+		en.append([])
+		for j in range(-1, 2):
+			en[i + 1].append([])
+			for h in range(-1, 2):
+				var shift = Vector3(i, j, h) * DERIVATIVE_EPS
+				var energy = get_neohookean_energy_at(origin + shift)
+				en[i + 1][j + 1].append(energy)
+
+	var info: DerivativeHessian = DerivativeHessian.new()
+
+	var dx = en[2][1][1] - en[0][1][1]
+	var dy = en[1][2][1] - en[1][0][1]
+	var dz = en[1][1][2] - en[1][1][0]
+	info.derivative = Vector3(dx, dy, dz) / DERIVATIVE_EPS
+
+	var dxx = en[2][1][1] - 2 * en[1][1][1] + en[0][1][1]
+	var dyy = en[1][2][1] - 2 * en[1][1][1] + en[1][0][1]
+	var dzz = en[1][1][2] - 2 * en[1][1][1] + en[1][1][0]
+	var dxy = (en[2][2][1] - en[0][2][1]) - (en[2][0][1] - en[0][0][1])
+	dxy *= 0.25
+	var dxz = (en[2][1][2] - en[0][1][2]) - (en[2][1][0] - en[0][1][0])
+	dxz *= 0.25
+	var dyz = (en[1][2][2] - en[1][0][2]) - (en[1][2][0] - en[1][0][0])
+	dyz *= 0.25
+	info.hessian = DenseMatrix.from_packed_array(
+		PackedFloat64Array([
+			dxx, dxy, dxz,
+			dxy, dyy, dyz,
+			dxz, dyz, dzz
+		]), 3, 3)
+	info.hessian.multiply_scaler_in_place(1.0 / (DERIVATIVE_EPS * DERIVATIVE_EPS))
+	return info
 
 func get_spring_force() -> Vector3:
 	var total_force = Vector3.ZERO
