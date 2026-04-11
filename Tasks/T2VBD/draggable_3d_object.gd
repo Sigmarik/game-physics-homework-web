@@ -12,10 +12,13 @@ const SPRING_STIFFNESS = 100.0 # Spring stiffness for connected springs (if any)
 const EXPANSION_RESISTANCE = 100
 const TORQUE_RESISTANCE = 0
 
-var volume_axis_a = 0
-var volume_axis_b = 0
-var volume_axis_c = 0
-var default_volume = 0
+class VolumeElement:
+	var volume_axis_a = 0
+	var volume_axis_b = 0
+	var volume_axis_c = 0
+	var default_volume = 0
+
+var volume_elements: Array[VolumeElement] = []
 
 class SoftBodySpring:
 	var other_node: Node3D
@@ -47,59 +50,113 @@ func trace_3x3(m: DenseMatrix) -> float:
 # The actual node to move (usually self, but can be another child if needed)
 @export var movable_node: Node3D = null
 
-func capture_volume_springs() -> void:
-	var highest_metric = 0.0
-	default_volume = 0.0
-	var longest_rest = 0.0
+func build_volume_element(i: int, j: int, h: int) -> void:
+	var element = VolumeElement.new()
+	var vec_a = springs[i].rest_vector
+	var vec_b = springs[j].rest_vector
+	var vec_c = springs[h].rest_vector
+	var volume = vec_a.cross(vec_b).dot(vec_c)
+	if abs(volume) <= 0.01: return # Skip degenerate elements
+	if volume > 0:
+		element.volume_axis_a = i
+		element.volume_axis_b = j
+		element.volume_axis_c = h
+	else:
+		element.volume_axis_a = i
+		element.volume_axis_b = h
+		element.volume_axis_c = j
+	element.default_volume = abs(volume)
+	volume_elements.append(element)
+
+func append_if_no_match(arr: Array, a: int, b: int, c: int) -> void:
+	if a == b or a == c or b == c: return
+
+	for existing in arr:
+		if (existing.x == a and existing.y == b and existing.z == c) or (existing.x == a and existing.y == c and existing.z == b) or (existing.x == b and existing.y == a and existing.z == c) or (existing.x == b and existing.y == c and existing.z == a) or (existing.x == c and existing.y == a and existing.z == b) or (existing.x == c and existing.y == b and existing.z == a):
+			return
+
+	arr.append(Vector3i(a, b, c))
+
+func pseudo_convex_hull(points: Array) -> Array[Vector3i]:
+	var triangles: Array[Vector3i] = []
+
+	var axis_x = 0
+	var axis_y = 0
+	var axis_z = 0
+
+	for p in range(0, points.size()):
+		for q in range(p + 1, points.size()):
+			if abs(points[axis_x].cross(points[p]).dot(points[q])) > abs(points[axis_x].cross(points[axis_y]).dot(points[axis_z])):
+				axis_y = p
+				axis_z = p
+
+	var axis_nx = 0
+	var axis_ny = 0
+	var axis_nz = 0
+
+	for p in range(0, points.size()):
+		if points[p].dot(-points[axis_x]) > points[axis_nx].dot(-points[axis_x]):
+			axis_nx = p
+	for p in range(0, points.size()):
+		if points[p].dot(-points[axis_y]) > points[axis_ny].dot(-points[axis_y]):
+			axis_ny = p
+	for p in range(0, points.size()):
+		if points[p].dot(-points[axis_z]) > points[axis_nz].dot(-points[axis_z]):
+			axis_nz = p
+
+	append_if_no_match(triangles, axis_x, axis_y, axis_z)
+	append_if_no_match(triangles, axis_x, axis_y, axis_nz)
+	append_if_no_match(triangles, axis_x, axis_ny, axis_z)
+	append_if_no_match(triangles, axis_x, axis_ny, axis_nz)
+	append_if_no_match(triangles, axis_nx, axis_y, axis_z)
+	append_if_no_match(triangles, axis_nx, axis_y, axis_nz)
+	append_if_no_match(triangles, axis_nx, axis_ny, axis_z)
+	append_if_no_match(triangles, axis_nx, axis_ny, axis_nz)
+
+	return triangles
+
+func triplets_from_springs() -> Array[Vector3i]:
+	var axes = []
 	for i in range(0, springs.size()):
-		longest_rest = max(longest_rest, springs[i].rest_vector.length())
-		for j in range(i + 1, springs.size()):
-			for h in range(j + 1, springs.size()):
-				var vec_a = springs[i].rest_vector
-				var vec_b = springs[j].rest_vector
-				var vec_c = springs[h].rest_vector
-				var metric = vec_a.normalized().cross(vec_b.normalized()).dot(vec_c.normalized())
-				if abs(metric) > highest_metric:
-					highest_metric = abs(metric)
-					var volume = abs(vec_a.cross(vec_b).dot(vec_c))
-					default_volume = volume
-					if metric > 0:
-						volume_axis_a = i
-						volume_axis_b = j
-						volume_axis_c = h
-					else:
-						volume_axis_a = i
-						volume_axis_b = h
-						volume_axis_c = j
-	print("RESULT - ", default_volume, " ", springs.size(), " ", longest_rest, " ", highest_metric)
+		var vector = springs[i].rest_vector
+		axes.append(vector.normalized())
+	return pseudo_convex_hull(axes)
 
-	# Build rest matrix R = [r0, r1, r2] (columns are rest vectors)
-	var r0 = springs[volume_axis_a].rest_vector
-	var r1 = springs[volume_axis_b].rest_vector
-	var r2 = springs[volume_axis_c].rest_vector
-	var R_data = PackedFloat64Array([
-		r0.x, r1.x, r2.x,
-		r0.y, r1.y, r2.y,
-		r0.z, r1.z, r2.z
-	])
-	var R = DenseMatrix.from_packed_array(R_data, 3, 3)
-	detR = determinant_3x3(R)
-	invR = R.inverse()
+func capture_volume_springs() -> void:
+	# var triplets = 
+	for triplet in triplets_from_springs():
+		build_volume_element(triplet.x, triplet.y, triplet.z)
+	# var highest_metric = 0.0
+	# var element = VolumeElement.new()
+	# element.default_volume = 0.0
+	# var longest_rest = 0.0
+	# for i in range(0, springs.size()):
+	# 	longest_rest = max(longest_rest, springs[i].rest_vector.length())
+	# 	for j in range(i + 1, springs.size()):
+	# 		for h in range(j + 1, springs.size()):
+	# 			var vec_a = springs[i].rest_vector
+	# 			var vec_b = springs[j].rest_vector
+	# 			var vec_c = springs[h].rest_vector
+	# 			var metric = vec_a.normalized().cross(vec_b.normalized()).dot(vec_c.normalized())
+	# 			if abs(metric) > highest_metric:
+	# 				highest_metric = abs(metric)
+	# 				var volume = abs(vec_a.cross(vec_b).dot(vec_c))
+	# 				element.default_volume = volume
+	# 				if metric > 0:
+	# 					element.volume_axis_a = i
+	# 					element.volume_axis_b = j
+	# 					element.volume_axis_c = h
+	# 				else:
+	# 					element.volume_axis_a = i
+	# 					element.volume_axis_b = h
+	# 					element.volume_axis_c = j
 
-# Neo-Hookean material parameters (replaces EXPANSION_RESISTANCE / TORQUE_RESISTANCE)
-@export var mu: float = 100.0      # Shear modulus (resistance to shape change)
-@export var lambda: float = 100.0  # Lamé parameter (resistance to volume change)
+func get_neophookean_energy_from_volume_element_at(element: VolumeElement, point: Vector3) -> float:
+	if element.default_volume == 0: return 0
 
-# Precomputed for deformation gradient computation
-var invR: DenseMatrix = null          # 3x3 inverse of rest matrix
-var detR: float = 1.0                 # determinant of rest matrix
-
-func get_neohookean_energy_at(point: Vector3) -> float:
-	if default_volume == 0: return 0
-
-	var spring_a : SoftBodySpring = springs[volume_axis_a]
-	var spring_b : SoftBodySpring = springs[volume_axis_b]
-	var spring_c : SoftBodySpring = springs[volume_axis_c]
+	var spring_a : SoftBodySpring = springs[element.volume_axis_a]
+	var spring_b : SoftBodySpring = springs[element.volume_axis_b]
+	var spring_c : SoftBodySpring = springs[element.volume_axis_c]
 	var vec_a = spring_a.other_node.planned_position - point
 	var vec_b = spring_b.other_node.planned_position - point
 	var vec_c = spring_c.other_node.planned_position - point
@@ -109,11 +166,17 @@ func get_neohookean_energy_at(point: Vector3) -> float:
 	var torque_b = vec_b.length() / spring_b.rest_length
 	var torque_c = vec_c.length() / spring_c.rest_length
 	
-	var volume_penalty = current_volume / default_volume - 1
+	var volume_penalty = current_volume / element.default_volume - 1
 	volume_penalty *= volume_penalty
 	var delta_torque = torque_a * torque_a + torque_b * torque_b + torque_c * torque_c - 3
 
 	return EXPANSION_RESISTANCE * volume_penalty / 2 + TORQUE_RESISTANCE * delta_torque / 2
+
+func get_neohookean_energy_at(point: Vector3) -> float:
+	var energy = 0.0
+	for element in volume_elements:
+		energy += get_neophookean_energy_from_volume_element_at(element, point)
+	return energy
 
 func get_neohookean_energy() -> float:
 	return get_neohookean_energy_at(movable_node.global_position)
