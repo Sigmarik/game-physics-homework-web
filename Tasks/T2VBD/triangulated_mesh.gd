@@ -34,67 +34,34 @@ func deduplicate_vertices(vertices: PackedVector3Array, eps: float) -> PackedVec
 			unique.append(v)
 	return unique
 
-# ------------------------------------------------------------------------------
+const CONNECTION_RADIUS = 5.5   # adjust based on your point cloud density
+
 func delaunay_3d(vertices: PackedVector3Array) -> Array:
 	var indices = Geometry3D.tetrahedralize_delaunay(vertices)
-	var tets = []
+	var edge_set = {}
+	
+	# Process each tetrahedron (4 indices per tet)
 	for i in range(0, indices.size(), 4):
-		tets.append([
+		var tet = [
 			indices[i],   indices[i+1],
 			indices[i+2], indices[i+3]
-		])
-	
-	var face_to_tets = {}
-	for tet_idx in range(tets.size()):
-		var tet = tets[tet_idx]
-		var faces = [
-			[tet[0], tet[1], tet[2]],
-			[tet[0], tet[1], tet[3]],
-			[tet[0], tet[2], tet[3]],
-			[tet[1], tet[2], tet[3]]
 		]
-		for face in faces:
-			face.sort()
-			var key = "%d,%d,%d" % [face[0], face[1], face[2]]
-			if not face_to_tets.has(key):
-				face_to_tets[key] = []
-			face_to_tets[key].append(tet_idx)
-	
-	var edge_keys = {}
-	for tet in tets:
-		var v0 = tet[0]; var v1 = tet[1]; var v2 = tet[2]; var v3 = tet[3]
-		var tet_edges = [
-			[v0, v1], [v0, v2], [v0, v3],
-			[v1, v2], [v1, v3], [v2, v3]
+		
+		# 6 edges of the tetrahedron
+		var edges = [
+			[tet[0], tet[1]], [tet[0], tet[2]], [tet[0], tet[3]],
+			[tet[1], tet[2]], [tet[1], tet[3]], [tet[2], tet[3]]
 		]
-		for e in tet_edges:
+		
+		for e in edges:
 			var key = "%d,%d" % [min(e[0], e[1]), max(e[0], e[1])]
-			edge_keys[key] = true
-	
-	for face_key in face_to_tets:
-		var tet_indices = face_to_tets[face_key]
-		if tet_indices.size() != 2:
-			continue
-		var tet_a = tets[tet_indices[0]]
-		var tet_b = tets[tet_indices[1]]
-		var parts = face_key.split(",")
-		var face_verts = [int(parts[0]), int(parts[1]), int(parts[2])]
-		var tip_a = -1; var tip_b = -1
-		for v in tet_a:
-			if not v in face_verts:
-				tip_a = v; break
-		for v in tet_b:
-			if not v in face_verts:
-				tip_b = v; break
-		if tip_a == -1 or tip_b == -1:
-			continue
-		var beam_key = "%d,%d" % [min(tip_a, tip_b), max(tip_a, tip_b)]
-		edge_keys[beam_key] = true
+			edge_set[key] = true
 	
 	var edges_out = []
-	for key in edge_keys:
+	for key in edge_set:
 		var parts = key.split(",")
 		edges_out.append(Vector2(int(parts[0]), int(parts[1])))
+	
 	return edges_out
 
 # ------------------------------------------------------------------------------
@@ -236,7 +203,7 @@ func setup_springs() -> void:
 		var spring_b = SpringClass.new()
 		spring_b.other_node = node_a
 		spring_b.rest_length = rest_len
-		spring_a.rest_vector = -rest_vector
+		spring_b.rest_vector = -rest_vector
 		node_b.springs.append(spring_b)
 
 	for instance in instances:

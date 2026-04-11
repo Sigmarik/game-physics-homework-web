@@ -9,8 +9,8 @@ var fixed_in_place = false  # If true, object won't move (can be used for fixed 
 
 const SPRING_STIFFNESS = 100.0 # Spring stiffness for connected springs (if any)
 
-const EXPANSION_RESISTANCE = 1000000.0
-const TORQUE_RESISTANCE = 100000.0
+const EXPANSION_RESISTANCE = 100
+const TORQUE_RESISTANCE = 0
 
 var volume_axis_a = 0
 var volume_axis_b = 0
@@ -32,7 +32,10 @@ var planned_position = Vector3.ZERO
 
 func capture_volume_springs() -> void:
 	var highest_metric = 0
+	default_volume = 0
+	var longest_rest = 0
 	for i in range(0, springs.size()):
+		longest_rest = max(longest_rest, springs[i].rest_vector.length())
 		for j in range(i + 1, springs.size()):
 			for h in range(j + 1, springs.size()):
 				var vec_a = springs[i].rest_vector
@@ -41,7 +44,7 @@ func capture_volume_springs() -> void:
 				var metric = vec_a.normalized().cross(vec_b.normalized()).dot(vec_c.normalized())
 				if abs(metric) > highest_metric:
 					highest_metric = abs(metric)
-					var volume = vec_a.cross(vec_b).dot(vec_c)
+					var volume = abs(vec_a.cross(vec_b).dot(vec_c))
 					default_volume = volume
 					if metric > 0:
 						volume_axis_a = i
@@ -51,7 +54,9 @@ func capture_volume_springs() -> void:
 						volume_axis_a = i
 						volume_axis_b = h
 						volume_axis_c = j
-	print(default_volume, " ", springs.size())
+	print("RESULT - ", default_volume, " ", springs.size(), " ", longest_rest, " ", highest_metric)
+	if (longest_rest == 0):
+		hide()
 
 func get_neohookean_energy_at(point: Vector3) -> float:
 	if default_volume == 0: return 0
@@ -70,14 +75,14 @@ func get_neohookean_energy_at(point: Vector3) -> float:
 	
 	var volume_penalty = current_volume / default_volume - 1
 	volume_penalty *= volume_penalty
-	var delta_torque = torque_a * torque_a + torque_b * torque_b + torque_c * torque_c - 1
+	var delta_torque = torque_a * torque_a + torque_b * torque_b + torque_c * torque_c - 3
 
-	return EXPANSION_RESISTANCE * volume_penalty / 2 + TORQUE_RESISTANCE * volume_penalty / 2
+	return EXPANSION_RESISTANCE * volume_penalty / 2 + TORQUE_RESISTANCE * delta_torque / 2
 
 func get_neohookean_energy() -> float:
 	return get_neohookean_energy_at(movable_node.global_position)
 
-const DERIVATIVE_EPS = 0.1
+const DERIVATIVE_EPS = 0.001
 
 class DerivativeHessian:
 	var derivative: Vector3
@@ -155,43 +160,44 @@ func _ready():
 	if not movable_node:
 		movable_node = self
 
-	# Connect input event from this AnimatableBody3D (it's a CollisionObject3D)
-	if has_signal("input_event"):
-		input_event.connect(_on_input_event)
-	else:
-		push_error("Draggable: AnimatableBody3D does not have 'input_event' signal. " +
-			"Make sure this node is properly set up as a CollisionObject3D.")
-
-func _on_input_event(camera: Node, event: InputEvent, click_position: Vector3, click_normal: Vector3, shape_idx: int):
+func _unhandled_input(event):
+	var camera = get_viewport().get_camera_3d()
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			# Start dragging
-			dragging = true
-			# Create a drag plane at the object's position, facing the camera
-			var cam_transform = camera.global_transform
-			var object_pos = movable_node.global_position
-			var cam_forward = -cam_transform.basis.z
-			drag_plane = Plane(cam_forward, object_pos)
-			# Compute initial offset
-			var mouse_pos_3d = _get_mouse_position_on_plane(camera, get_viewport().get_mouse_position(), drag_plane)
-			if mouse_pos_3d:
-				drag_offset = movable_node.global_position - mouse_pos_3d
-			else:
-				dragging = false
-
-func _input(event: InputEvent):
-	if dragging and event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			# Perform a manual raycast to see if we clicked this object
+			var space_state = get_world_3d().direct_space_state
+			var mouse_pos = get_viewport().get_mouse_position()
+			var origin = camera.project_ray_origin(mouse_pos)
+			var end = origin + camera.project_ray_normal(mouse_pos) * 1000
+			var query = PhysicsRayQueryParameters3D.create(origin, end)
+			query.collide_with_areas = true
+			query.collide_with_bodies = true
+			var result = space_state.intersect_ray(query)
+			
+			if result and result.collider == self:
+				# Start dragging
+				dragging = true
+				# Create a drag plane at the object's position, facing the camera
+				var cam_transform = camera.global_transform
+				var object_pos = movable_node.global_position
+				var cam_forward = -cam_transform.basis.z
+				drag_plane = Plane(cam_forward, object_pos)
+				# Compute initial offset
+				var mouse_pos_3d = _get_mouse_position_on_plane(camera, get_viewport().get_mouse_position(), drag_plane)
+				if mouse_pos_3d:
+					drag_offset = movable_node.global_position - mouse_pos_3d
+				else:
+					dragging = false
+				get_viewport().set_input_as_handled()
+		else:
 			dragging = false
+			if dragging: get_viewport().set_input_as_handled()
+
 	if dragging and event is InputEventMouseMotion:
-		var camera = get_viewport().get_camera_3d()
-		if not camera:
-			return
 		var mouse_pos_3d = _get_mouse_position_on_plane(camera, event.position, drag_plane)
 		if mouse_pos_3d:
-			var new_position = mouse_pos_3d + drag_offset
-			last_frame_position = movable_node.global_position
-			movable_node.global_position = new_position
+			movable_node.global_position = mouse_pos_3d + drag_offset
+		get_viewport().set_input_as_handled()
 
 func _get_mouse_position_on_plane(camera: Camera3D, mouse_pos: Vector2, plane: Plane) -> Variant:
 	# Raycast from camera through mouse position onto the plane

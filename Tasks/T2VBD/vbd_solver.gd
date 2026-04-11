@@ -5,7 +5,7 @@ extends Node
 @export var damping := 0.99                     # Velocity damping factor
 @export var spring_stiffness_override := -1.0   # If >=0, overrides point's SPRING_STIFFNESS
 @export var collision_restitution := 0.2        # Bounciness when hitting a plane
-@export var max_delta := 0.0025                  # Clamp delta to avoid instability
+@export var max_delta := 0.0025                 # Clamp delta to avoid instability
 
 # --- Internal data ----------------------------------------------------------
 var time_since_last_tick = 0.0
@@ -31,6 +31,13 @@ func solve_linear_system(matrix: DenseMatrix, vector: Vector3) -> Vector3:
 	
 	return Vector3(x, y, z)
 
+func transform_vector(matrix: DenseMatrix, vector: Vector3) -> Vector3:
+	var vec_n = VectorN.from_packed_array(PackedFloat64Array([vector.x, vector.y, vector.z]))
+	var result_n = matrix.multiply_vector(vec_n)
+	return Vector3(result_n.get_element(0), result_n.get_element(1), result_n.get_element(2))
+
+const DAMPING_K = 0.001
+
 # ----------------------------------------------------------------------------
 func _process(delta: float) -> void:
 	time_since_last_tick += delta;
@@ -53,7 +60,7 @@ func _process(delta: float) -> void:
 		var extrapolated_position = old_pos + vel * delta_time + gravity * delta_time * delta_time
 		point.planned_position = extrapolated_position
 
-	for iteration in range(0, 4):
+	for iteration in range(0, 5):
 		for point in points:
 			if point.fixed_in_place or point.dragging: continue
 			var old_pos = point.global_position
@@ -63,8 +70,16 @@ func _process(delta: float) -> void:
 			var extrapolated_position = old_pos + vel * delta_time + gravity * delta_time * delta_time
 
 			var neohookean_info = point.get_neohookean_info()
-			var energy_derivative: Vector3 = -point.get_spring_force()# + neohookean_info.derivative
-			var energy_hessian: DenseMatrix = point.get_spring_hessian()#.add_dense(neohookean_info.hessian)
+			var energy_derivative: Vector3 = -point.get_spring_force() + neohookean_info.derivative
+			var energy_hessian: DenseMatrix = point.get_spring_hessian().add_dense(neohookean_info.hessian)
+
+			var damping_hessian = energy_hessian.clone()
+			damping_hessian.multiply_scaler_in_place(DAMPING_K / delta_time)
+
+			var damping_force = transform_vector(damping_hessian, vel * delta_time)
+			energy_derivative += damping_force
+
+			energy_hessian.add_dense_in_place(damping_hessian)
 
 			var force_component = -point.mass / (delta_time * delta_time) * (old_pos - extrapolated_position) - energy_derivative
 
