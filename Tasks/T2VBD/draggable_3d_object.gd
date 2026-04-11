@@ -106,7 +106,7 @@ func get_neohookean_info() -> DerivativeHessian:
 	var dx = en[2][1][1] - en[0][1][1]
 	var dy = en[1][2][1] - en[1][0][1]
 	var dz = en[1][1][2] - en[1][1][0]
-	info.derivative = Vector3(dx, dy, dz) / DERIVATIVE_EPS
+	info.derivative = Vector3(dx, dy, dz) / DERIVATIVE_EPS * 0.5
 
 	var dxx = en[2][1][1] - 2 * en[1][1][1] + en[0][1][1]
 	var dyy = en[1][2][1] - 2 * en[1][1][1] + en[1][0][1]
@@ -125,6 +125,19 @@ func get_neohookean_info() -> DerivativeHessian:
 		]), 3, 3)
 	info.hessian.multiply_scaler_in_place(1.0 / (DERIVATIVE_EPS * DERIVATIVE_EPS))
 	return info
+
+func get_total_energy_at(point: Vector3) -> float:
+	var neohook = get_neohookean_energy_at(point)
+	var spring = get_spring_energy_at(point)
+	return neohook + spring
+
+func get_spring_energy_at(point: Vector3) -> float:
+	var energy = 0
+	for spring in springs:
+		var delta_position = movable_node.global_position - spring.other_node.planned_position
+		var delta_length = delta_position.length() - spring.rest_length
+		energy += delta_length * delta_length * SPRING_STIFFNESS * 0.5
+	return energy
 
 func get_spring_force() -> Vector3:
 	var total_force = Vector3.ZERO
