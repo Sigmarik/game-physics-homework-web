@@ -1,7 +1,7 @@
 extends Node
 
 # --- Exported parameters ----------------------------------------------------
-@export var gravity := Vector3(0, -9.8 * 0, 0)  # Gravity acceleration
+@export var gravity := Vector3(0, -9.8, 0)  # Gravity acceleration
 @export var damping := 0.99                     # Velocity damping factor
 @export var spring_stiffness_override := -1.0   # If >=0, overrides point's SPRING_STIFFNESS
 @export var collision_restitution := 0.2        # Bounciness when hitting a plane
@@ -60,7 +60,7 @@ func _process(delta: float) -> void:
 		var extrapolated_position = old_pos + vel * delta_time + gravity * delta_time * delta_time
 		point.planned_position = extrapolated_position
 
-	for iteration in range(0, 5):
+	for iteration in range(0, 10):
 		for point in points:
 			if point.fixed_in_place or point.dragging: continue
 			var old_pos = point.global_position

@@ -236,6 +236,8 @@ func _ready() -> void:
 		print("Warning: No packed_scene assigned. Object spawning skipped.")
 	
 	build_vertex_to_instance_mapping()
+
+	instances[randi_range(0, instances.size() - 1)].fixed_in_place = true
 	
 	if unique_verts.size() >= 4:
 		edges = delaunay_3d(unique_verts)

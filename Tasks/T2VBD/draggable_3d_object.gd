@@ -27,13 +27,30 @@ var mass = 1.0
 var springs: Array[SoftBodySpring]
 var planned_position = Vector3.ZERO
 
+# ------------------------------------------------------------------
+# Helper: 3x3 determinant (since DenseMatrix lacks built‑in)
+# ------------------------------------------------------------------
+func determinant_3x3(m: DenseMatrix) -> float:
+	if m.get_dimensions() != Vector2i(3, 3):
+		return 0.0
+	var a = m.get_element(0, 0); var b = m.get_element(0, 1); var c = m.get_element(0, 2)
+	var d = m.get_element(1, 0); var e = m.get_element(1, 1); var f = m.get_element(1, 2)
+	var g = m.get_element(2, 0); var h = m.get_element(2, 1); var i = m.get_element(2, 2)
+	return a*(e*i - f*h) - b*(d*i - f*g) + c*(d*h - e*g)
+
+# ------------------------------------------------------------------
+# Helper: trace of 3x3 matrix
+# ------------------------------------------------------------------
+func trace_3x3(m: DenseMatrix) -> float:
+	return m.get_element(0, 0) + m.get_element(1, 1) + m.get_element(2, 2)
+
 # The actual node to move (usually self, but can be another child if needed)
 @export var movable_node: Node3D = null
 
 func capture_volume_springs() -> void:
-	var highest_metric = 0
-	default_volume = 0
-	var longest_rest = 0
+	var highest_metric = 0.0
+	default_volume = 0.0
+	var longest_rest = 0.0
 	for i in range(0, springs.size()):
 		longest_rest = max(longest_rest, springs[i].rest_vector.length())
 		for j in range(i + 1, springs.size()):
@@ -55,8 +72,27 @@ func capture_volume_springs() -> void:
 						volume_axis_b = h
 						volume_axis_c = j
 	print("RESULT - ", default_volume, " ", springs.size(), " ", longest_rest, " ", highest_metric)
-	if (longest_rest == 0):
-		hide()
+
+	# Build rest matrix R = [r0, r1, r2] (columns are rest vectors)
+	var r0 = springs[volume_axis_a].rest_vector
+	var r1 = springs[volume_axis_b].rest_vector
+	var r2 = springs[volume_axis_c].rest_vector
+	var R_data = PackedFloat64Array([
+		r0.x, r1.x, r2.x,
+		r0.y, r1.y, r2.y,
+		r0.z, r1.z, r2.z
+	])
+	var R = DenseMatrix.from_packed_array(R_data, 3, 3)
+	detR = determinant_3x3(R)
+	invR = R.inverse()
+
+# Neo-Hookean material parameters (replaces EXPANSION_RESISTANCE / TORQUE_RESISTANCE)
+@export var mu: float = 100.0      # Shear modulus (resistance to shape change)
+@export var lambda: float = 100.0  # Lamé parameter (resistance to volume change)
+
+# Precomputed for deformation gradient computation
+var invR: DenseMatrix = null          # 3x3 inverse of rest matrix
+var detR: float = 1.0                 # determinant of rest matrix
 
 func get_neohookean_energy_at(point: Vector3) -> float:
 	if default_volume == 0: return 0
@@ -82,7 +118,7 @@ func get_neohookean_energy_at(point: Vector3) -> float:
 func get_neohookean_energy() -> float:
 	return get_neohookean_energy_at(movable_node.global_position)
 
-const DERIVATIVE_EPS = 0.001
+const DERIVATIVE_EPS = 0.01
 
 class DerivativeHessian:
 	var derivative: Vector3

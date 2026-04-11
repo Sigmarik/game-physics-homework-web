@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://djji0y4fvnx1i" path="res://Tasks/T2VBD/draggable_3d_object.gd" id="3_77gtb"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_5nvm4"]
-radius = 1.9695952
+radius = 0.27219376
 
 [node name="SimulationVertex" type="AnimatableBody3D" unique_id=437130027]
 script = ExtResource("3_77gtb")
