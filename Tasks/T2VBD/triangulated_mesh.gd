@@ -222,12 +222,15 @@ func _ready() -> void:
 	
 	var world_verts = get_world_space_vertices()
 	unique_verts = deduplicate_vertices(world_verts, tolerance)
+
+	var fixed_vertex_index = 0
 	
 	if packed_scene != null:
 		for v in unique_verts:
 			var instance = packed_scene.instantiate()
 			get_tree().current_scene.add_child.call_deferred(instance)
 			set_world_pos.call_deferred(instance, v)
+			if v.y > unique_verts[fixed_vertex_index].y: fixed_vertex_index = instances.size()
 			instance.last_frame_position = v
 			instances.append(instance)
 			instance.add_to_group("vbd_point")
@@ -237,7 +240,7 @@ func _ready() -> void:
 	
 	build_vertex_to_instance_mapping()
 
-	instances[randi_range(0, instances.size() - 1)].fixed_in_place = true
+	instances[fixed_vertex_index].fixed_in_place = true
 	
 	if unique_verts.size() >= 4:
 		edges = delaunay_3d(unique_verts)
