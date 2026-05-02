@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://cuu6tmmuo2p3p"]
+
+[ext_resource type="Script" uid="uid://cywvdpb47jl01" path="res://Common/camera_3d.gd" id="1_m5r4c"]
+[ext_resource type="Sky" uid="uid://cegi4c8o3hdge" path="res://Tasks/T2VBD/gradient_sky.tres" id="5_f4cxv"]
+[ext_resource type="Script" uid="uid://cg84dtu05u2m4" path="res://Common/level_transition_button.gd" id="6_b74cs"]
+
+[sub_resource type="Environment" id="Environment_l57hv"]
+background_mode = 2
+sky = ExtResource("5_f4cxv")
+ambient_light_color = Color(1, 1, 1, 1)
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_lqhsh"]
+
+[sub_resource type="Compositor" id="Compositor_5vlnq"]
+
+[node name="Preset" type="Node3D" unique_id=356544197]
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=753051965]
+transform = Transform3D(0.70710677, -0.24600333, 0.66293466, 0, 0.9375313, 0.34790123, -0.70710677, -0.24600334, 0.66293466, 8.035133, 3.9237885, 8.035133)
+fov = 34.548416
+script = ExtResource("1_m5r4c")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1859373644]
+transform = Transform3D(0.50161076, 0.8092571, 0.3057608, 0.05394075, -0.38201278, 0.92258155, 0.8634102, -0.44628385, -0.23527366, -0.12959528, 0.08901119, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=587900461]
+environment = SubResource("Environment_l57hv")
+camera_attributes = SubResource("CameraAttributesPractical_lqhsh")
+compositor = SubResource("Compositor_5vlnq")
+
+[node name="ToMenuButton" type="Button" parent="." unique_id=1276240320]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 160.0
+offset_bottom = 64.0
+text = "To Main Menu"
+script = ExtResource("6_b74cs")
+next_level_scene = "res://main.tscn"

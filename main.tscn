@@ -43,3 +43,13 @@ tooltip_text = "Balls"
 text = "T2 Hanging Thing"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T2VBD/preset.tscn"
+
+[node name="Button5" type="Button" parent="CanvasLayer" unique_id=1803905485]
+offset_left = 392.0
+offset_top = 24.0
+offset_right = 544.0
+offset_bottom = 64.0
+tooltip_text = "Balls"
+text = "T3.1"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/globally_rotating_thingy.tscn"

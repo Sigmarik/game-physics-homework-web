@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://dfv1tas01bkr6"]
+
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_x4a2o"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_6tvxy"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="2_qq4pt"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
+size = Vector3(1, 2.994873, 1.6469727)
+
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_x4a2o")]
+script = ExtResource("2_6tvxy")
+
+[node name="RigidBody3D" type="RigidBody3D" parent="." index="4" unique_id=1892616116]
+gravity_scale = 0.0
+script = ExtResource("2_qq4pt")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" index="0" unique_id=1690204462]
+transform = Transform3D(1, 0, 0, 0, 2.979607, 0, 0, 0, 1.631388, 0, 0, 0)
+mesh = SubResource("BoxMesh_qq4pt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" index="1" unique_id=1692838960]
+shape = SubResource("BoxShape3D_qq4pt")

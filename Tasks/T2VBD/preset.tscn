@@ -29,7 +29,7 @@ transform = Transform3D(0.50161076, 0.8092571, 0.3057608, 0.05394075, -0.3820127
 shadow_enabled = true
 
 [node name="Multicube" type="MeshInstance3D" parent="." unique_id=1098579943]
-transform = Transform3D(0.9829171, -0.18124837, -0.031975243, 0.17211999, 0.96676505, -0.18904902, 0.06517739, 0.18031597, 0.98144674, 0, 0, 0)
+transform = Transform3D(0.9829171, -0.18124837, -0.031975243, 0.17211999, 0.96676505, -0.18904902, 0.06517739, 0.18031597, 0.98144674, -0.82244086, 0, 0.7294694)
 material_override = ExtResource("1_ews0e")
 mesh = ExtResource("3_5nvm4")
 script = ExtResource("3_fk2q0")
