@@ -1,20 +1,20 @@
-[gd_scene format=3 uid="uid://dfv1tas01bkr6"]
+[gd_scene format=3 uid="uid://4rqew036vtec"]
 
-[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_x4a2o"]
-[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_6tvxy"]
-[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="2_qq4pt"]
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_scmf1"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_vd4ug"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_vk8v2"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
 size = Vector3(1, 2.994873, 1.6469727)
 
-[node name="Preset" unique_id=356544197 instance=ExtResource("1_x4a2o")]
-script = ExtResource("2_6tvxy")
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_scmf1")]
+script = ExtResource("2_vd4ug")
 
 [node name="RigidBody3D" type="RigidBody3D" parent="." index="4" unique_id=1892616116]
 gravity_scale = 0.0
-script = ExtResource("2_qq4pt")
+script = ExtResource("3_vk8v2")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" index="0" unique_id=1690204462]
 transform = Transform3D(1, 0, 0, 0, 2.979607, 0, 0, 0, 1.631388, 0, 0, 0)

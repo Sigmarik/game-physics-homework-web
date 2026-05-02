@@ -50,6 +50,27 @@ offset_top = 24.0
 offset_right = 544.0
 offset_bottom = 64.0
 tooltip_text = "Balls"
-text = "T3.1"
+text = "T3.1 Global
+Angular Momentum"
 script = ExtResource("1_ig7tw")
-next_level_scene = "res://Tasks/T3/globally_rotating_thingy.tscn"
+next_level_scene = "res://Tasks/T3/dzhanibekov_global.tscn"
+
+[node name="Button6" type="Button" parent="CanvasLayer" unique_id=1674317440]
+offset_left = 392.0
+offset_top = 96.0
+offset_right = 556.0
+offset_bottom = 136.0
+tooltip_text = "Balls"
+text = "T3.1 Explicit Gyro"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/dzhanibekov_explicit.tscn"
+
+[node name="Button7" type="Button" parent="CanvasLayer" unique_id=792885733]
+offset_left = 392.0
+offset_top = 152.0
+offset_right = 556.0
+offset_bottom = 192.0
+tooltip_text = "Balls"
+text = "T3.1 Implicit Gyro"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/dzhanibekov_implicit.tscn"
