@@ -24,3 +24,9 @@ func get_angular_gradient(node: PhysicalBox) -> Vector3:
     var global_pivot := node.global_position + pivot_shift
     var delta := get_anchor_pos() - global_pivot
     return -pivot_shift.cross(delta)
+
+func draw_constraint(node : PhysicalBox) -> void:
+    var pivot_shift := node.global_basis * relative_shift
+    var global_pivot := node.global_position + pivot_shift
+    var anchor := get_anchor_pos()
+    DebugDraw3D.draw_line(global_pivot, anchor, Color.RED)

@@ -61,7 +61,7 @@ func _ready() -> void:
 
 	if add_spring_constraint:
 		var spring := SpringConstraint.new()
-		spring.relative_shift = Vector3(0.1, 1, 0.1)
+		spring.relative_shift = Vector3(0, 1, 0)
 		constraints.append(spring)
 
 func apply_rot_difference(axis_angle : Vector3) -> void:
@@ -166,6 +166,11 @@ func reset_constraint_lambdas() -> void:
 		constraint.lambda = 0
 
 
+func draw_constraints() -> void:
+	for constraint in constraints:
+		constraint.draw_constraint(self)
+
+
 func iterate_constraints_xpbd(delta : float) -> void:
 	var linear_shift := Vector3.ZERO
 	var rotation_shift := Vector3.ZERO
@@ -189,8 +194,68 @@ func iterate_constraints_explicit(delta : float) -> void:
 
 		linear_gradient /= constraint.compliance
 		angular_gradient /= constraint.compliance
-		linear_shift += linear_gradient * delta * delta
-		rotation_shift += angular_gradient * delta * delta
-	global_position += linear_shift
-	apply_rot_difference(rotation_shift)
+		linear_shift += linear_gradient
+		rotation_shift += angular_gradient
+	global_position += linear_shift * delta * delta / mass
+	apply_rot_difference(get_inverse_inertia_ws() * rotation_shift * delta * delta)
+
+# func iterate_soft_constraints(delta : float) -> void:
+# 	# v2 = v1 + delta * inverse_mass * lambda
+# 	# x2 = x1 + delta * v2
+# 	# dot(C'(x_1), v2) + beta / delta * C(x1) + gamma * lambda = 0
+
+# 	# TODO: Update object's position, rotation and angular/linear velocities by solving the equations
+
+# 	pass
+
+func iterate_soft_constraints(delta: float) -> void:
+	# Soft constraint following Catto's formulation:
+	#   v2 = v1 + delta * M^{-1} * lambda   (lambda is a force)
+	#   J * v2 + (beta / delta) * C(x) + gamma * lambda = 0
+	# Solve for lambda, then update velocities and positions.
+
+	var I_inv := get_inverse_inertia_ws()
+
+	var linear_shift := Vector3.ZERO
+	var rotation_shift := Vector3.ZERO
+
+	for constraint in constraints:
+		var beta := constraint.softness
+
+		# Constraint properties
+		var C := constraint.get_constraint_value(self)
+		var J_lin := constraint.get_positional_gradient(self)
+		var J_ang := constraint.get_angular_gradient(self)
+
+		# Relative velocity along constraint direction
+		var Jv := J_lin.dot(custom_velocity) + J_ang.dot(custom_angular_velocity)
+
+		# Effective mass (world‑space)
+		var w: float = 0.0
+		if mass > 0.0:
+			w += J_lin.length_squared() / mass
+		var I_inv_J_ang := I_inv * J_ang
+		w += J_ang.dot(I_inv_J_ang)
+
+		# Compliance (inverse stiffness) – stored in the constraint
+		var gamma := constraint.compliance
+
+		# Equation: (delta * w + gamma) * lambda = -(Jv + (beta/delta) * C)
+		var denom := delta * w + gamma
+		if abs(denom) < 1e-12:
+			continue
+
+		var lambda_force := -(Jv + (beta / delta) * C) / denom
+
+		# Apply velocity update: v += delta * M^{-1} * J^T * lambda
+		var impulse_lin := (delta * lambda_force) * J_lin / mass  if mass > 0.0 else Vector3.ZERO
+		var impulse_ang := (delta * lambda_force) * I_inv_J_ang
+
+		linear_shift += impulse_lin
+		rotation_shift += impulse_ang
+
+	# Position integration using the new velocities
+	global_position += linear_shift * delta * delta / mass
+	apply_rot_difference(get_inverse_inertia_ws() * rotation_shift * delta * delta)
+	
 

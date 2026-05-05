@@ -1,21 +1,21 @@
-[gd_scene format=3 uid="uid://cudp3hxq16ejb"]
+[gd_scene format=3 uid="uid://hpxe4bisksrv"]
 
-[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_in2f4"]
-[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_fispy"]
-[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_80omo"]
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_a3st7"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_j1n4l"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_c0tub"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
 size = Vector3(1, 2.994873, 1.6469727)
 
-[node name="Preset" unique_id=356544197 instance=ExtResource("1_in2f4")]
-script = ExtResource("2_fispy")
-constraint_mode = 1
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_a3st7")]
+script = ExtResource("2_j1n4l")
+constraint_mode = 2
 
 [node name="RigidBody3D" type="RigidBody3D" parent="." index="4" unique_id=1892616116]
 transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, -0.83803475, 1.149612, 0)
-script = ExtResource("3_80omo")
+script = ExtResource("3_c0tub")
 show_angular_velocity = false
 show_initial_angular_velocity = false
 initial_angular_velocity = Vector3(0, 0, 0)

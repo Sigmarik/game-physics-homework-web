@@ -34,6 +34,9 @@ func _process(_delta: float) -> void:
 		if body.show_initial_angular_velocity:
 			DebugDraw3D.draw_arrow(body.global_position, body.global_position + body.initial_angular_velocity, Color.RED, 0.1, true)
 
+	for body in bodies:
+		body.draw_constraints()
+
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
@@ -60,6 +63,9 @@ func _physics_process(delta: float) -> void:
 	elif constraint_mode == ConstraintResolutionMode.explicit_forces:
 		for body in bodies:
 			body.iterate_constraints_explicit(delta)
+	elif constraint_mode == ConstraintResolutionMode.soft_constraints:
+		for body in bodies:
+			body.iterate_soft_constraints(delta)
 	
 	for body in bodies:
 		body.custom_angular_velocity = PhysicalBox.rotation_difference(body.old_basis, body.global_basis) / delta

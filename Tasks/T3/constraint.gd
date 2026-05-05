@@ -5,8 +5,7 @@ extends Object
 var lambda : float = 0
 
 var compliance : float = 0.01
-var hertz : float = 10
-var damping_ratio : float = 0.5
+var softness : float = 0.2
 
 @abstract
 func get_constraint_value(node : PhysicalBox) -> float
@@ -38,3 +37,6 @@ func get_delta_and_update_lambda(node : PhysicalBox, delta : float) -> Compresse
     compressed_delta.angular = node.get_inverse_inertia_ws() * get_angular_gradient(node) * delta_lambda
     lambda += delta_lambda
     return compressed_delta
+
+@abstract
+func draw_constraint(node : PhysicalBox) -> void
