@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://ey6pfk5qb52x"]
+
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="1_5653y"]
+[ext_resource type="Script" uid="uid://bygq0e7a2yvl0" path="res://Tasks/T3/bb_adjustable_mesh.gd" id="2_fmyxv"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
+size = Vector3(0.6982422, 1.2069855, 0.6865845)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
+size = Vector3(0.6982422, 1.2069855, 0.6865845)
+
+[node name="RigidBody3D" type="RigidBody3D" unique_id=247578335]
+transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, 0, 0, 0)
+mass = 0.1
+script = ExtResource("1_5653y")
+show_angular_velocity = false
+show_initial_angular_velocity = false
+initial_angular_velocity = Vector3(0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=698322101]
+mesh = SubResource("BoxMesh_qq4pt")
+script = ExtResource("2_fmyxv")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=857883774]
+shape = SubResource("BoxShape3D_qq4pt")

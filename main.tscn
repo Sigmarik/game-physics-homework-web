@@ -96,3 +96,14 @@ text = "T3.2 One Box,
 Soft Constraints"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/box_on_a_spring_soft_constraints.tscn"
+
+[node name="Button10" type="Button" parent="CanvasLayer" unique_id=1497011824]
+offset_left = 392.0
+offset_top = 352.0
+offset_right = 564.0
+offset_bottom = 406.0
+tooltip_text = "Balls"
+text = "T3.2 Two Boxes,
+XPBD"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/two_boxes_xpbd.tscn"

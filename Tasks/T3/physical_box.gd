@@ -51,6 +51,10 @@ func get_local_inertia_diag() -> Vector3:
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		# Editor: do nothing permanent, just let _process draw
+		return
+
 	add_to_group("xpbd_bodies")
 	custom_integrator = true
 
@@ -64,7 +68,11 @@ func _ready() -> void:
 		spring.relative_shift = Vector3(0, 1, 0)
 		constraints.append(spring)
 
+
+# --- Safety first : only modify global transform when inside the tree ---
 func apply_rot_difference(axis_angle : Vector3) -> void:
+	if not is_inside_tree():
+		return
 	var angle = axis_angle.length()
 	if angle > 0.0001:
 		var axis = axis_angle.normalized()
@@ -85,6 +93,10 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 
 func _process(delta: float) -> void:
+	# Accessing global_position while out of tree causes the error, so guard it.
+	if not is_inside_tree():
+		return
+
 	if show_angular_velocity:
 		DebugDraw3D.draw_arrow(global_position, global_position + custom_angular_velocity, Color.CYAN, 0.1, true)
 
@@ -93,6 +105,8 @@ func _process(delta: float) -> void:
 
 
 func get_ws_inertia() -> Basis:
+	if not is_inside_tree():
+		return Basis()
 	var I_local_vec := get_local_inertia_diag()
 	var I_local := Basis.from_scale(I_local_vec)
 	var R := global_basis
@@ -100,6 +114,8 @@ func get_ws_inertia() -> Basis:
 
 
 func get_inverse_inertia_ws() -> Basis:
+	if not is_inside_tree():
+		return Basis()
 	var I_local_vec := get_local_inertia_diag()
 	if I_local_vec.x == 0 or I_local_vec.y == 0 or I_local_vec.z == 0:
 		push_error("Mass is zero -> infinite inertia.")
@@ -112,11 +128,15 @@ func get_inverse_inertia_ws() -> Basis:
 
 
 func get_gyroscopic_term() -> Vector3:
+	if not is_inside_tree():
+		return Vector3.ZERO
 	var momentum_derivative := -custom_angular_velocity.cross(get_ws_inertia() * custom_angular_velocity)
 	return get_inverse_inertia_ws() * momentum_derivative
 
 
 func get_implicit_gyroscopic_term(delta: float) -> Vector3:
+	if not is_inside_tree():
+		return Vector3.ZERO
 	# Get inertia tensor (world space) and its inverse
 	var I: Basis = get_ws_inertia()
 	var I_inv: Basis = get_inverse_inertia_ws()
@@ -167,11 +187,16 @@ func reset_constraint_lambdas() -> void:
 
 
 func draw_constraints() -> void:
+	# Constraint drawing might use global_position – guard it
+	if not is_inside_tree():
+		return
 	for constraint in constraints:
 		constraint.draw_constraint(self)
 
 
 func iterate_constraints_xpbd(delta : float) -> void:
+	if not is_inside_tree():
+		return
 	var linear_shift := Vector3.ZERO
 	var rotation_shift := Vector3.ZERO
 	for constraint in constraints:
@@ -181,7 +206,10 @@ func iterate_constraints_xpbd(delta : float) -> void:
 	global_position += linear_shift
 	apply_rot_difference(rotation_shift)
 
+
 func iterate_constraints_explicit(delta : float) -> void:
+	if not is_inside_tree():
+		return
 	var linear_shift := Vector3.ZERO
 	var rotation_shift := Vector3.ZERO
 	for constraint in constraints:
@@ -199,21 +227,10 @@ func iterate_constraints_explicit(delta : float) -> void:
 	global_position += linear_shift * delta * delta / mass
 	apply_rot_difference(get_inverse_inertia_ws() * rotation_shift * delta * delta)
 
-# func iterate_soft_constraints(delta : float) -> void:
-# 	# v2 = v1 + delta * inverse_mass * lambda
-# 	# x2 = x1 + delta * v2
-# 	# dot(C'(x_1), v2) + beta / delta * C(x1) + gamma * lambda = 0
-
-# 	# TODO: Update object's position, rotation and angular/linear velocities by solving the equations
-
-# 	pass
 
 func iterate_soft_constraints(delta: float) -> void:
-	# Soft constraint following Catto's formulation:
-	#   v2 = v1 + delta * M^{-1} * lambda   (lambda is a force)
-	#   J * v2 + (beta / delta) * C(x) + gamma * lambda = 0
-	# Solve for lambda, then update velocities and positions.
-
+	if not is_inside_tree():
+		return
 	var I_inv := get_inverse_inertia_ws()
 
 	var linear_shift := Vector3.ZERO
@@ -257,5 +274,3 @@ func iterate_soft_constraints(delta: float) -> void:
 	# Position integration using the new velocities
 	global_position += linear_shift * delta * delta / mass
 	apply_rot_difference(get_inverse_inertia_ws() * rotation_shift * delta * delta)
-	
-
