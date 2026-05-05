@@ -187,8 +187,8 @@ func iterate_constraints_explicit(delta : float) -> void:
 			linear_gradient *= -1
 			angular_gradient *= -1
 
-		linear_gradient /= constraint.get_compliance()
-		angular_gradient /= constraint.get_compliance()
+		linear_gradient /= constraint.compliance
+		angular_gradient /= constraint.compliance
 		linear_shift += linear_gradient * delta * delta
 		rotation_shift += angular_gradient * delta * delta
 	global_position += linear_shift

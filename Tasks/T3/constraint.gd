@@ -4,6 +4,10 @@ extends Object
 
 var lambda : float = 0
 
+var compliance : float = 0.01
+var hertz : float = 10
+var damping_ratio : float = 0.5
+
 @abstract
 func get_constraint_value(node : PhysicalBox) -> float
 
@@ -13,11 +17,8 @@ func get_positional_gradient(node : PhysicalBox) -> Vector3
 @abstract
 func get_angular_gradient(node : PhysicalBox) -> Vector3
 
-func get_compliance() -> float:
-    return 0.01
-
 func get_delta_lambda(node : PhysicalBox, delta : float) -> float:
-    var a_tilde := get_compliance() / (delta * delta)
+    var a_tilde := compliance / (delta * delta)
     var top := -get_constraint_value(node) - a_tilde * lambda
     var angular_grad := get_angular_gradient(node)
     var positional_grad := get_positional_gradient(node)
