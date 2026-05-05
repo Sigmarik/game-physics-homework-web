@@ -220,7 +220,7 @@ func iterate_soft_constraints(delta: float) -> void:
 	var rotation_shift := Vector3.ZERO
 
 	for constraint in constraints:
-		var beta := constraint.softness
+		var beta := 1.0 / constraint.compliance
 
 		# Constraint properties
 		var C := constraint.get_constraint_value(self)
@@ -238,7 +238,7 @@ func iterate_soft_constraints(delta: float) -> void:
 		w += J_ang.dot(I_inv_J_ang)
 
 		# Compliance (inverse stiffness) – stored in the constraint
-		var gamma := constraint.compliance
+		var gamma := constraint.softness
 
 		# Equation: (delta * w + gamma) * lambda = -(Jv + (beta/delta) * C)
 		var denom := delta * w + gamma
