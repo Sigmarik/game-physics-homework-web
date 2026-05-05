@@ -74,3 +74,14 @@ tooltip_text = "Balls"
 text = "T3.1 Implicit Gyro"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/dzhanibekov_implicit.tscn"
+
+[node name="Button8" type="Button" parent="CanvasLayer" unique_id=1641964081]
+offset_left = 392.0
+offset_top = 208.0
+offset_right = 556.0
+offset_bottom = 248.0
+tooltip_text = "Balls"
+text = "T3.2 One Box,
+External Force Spring"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/box_on_a_spring_external_force.tscn"

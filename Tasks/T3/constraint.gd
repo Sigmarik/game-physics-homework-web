@@ -14,7 +14,7 @@ func get_positional_gradient(node : PhysicalBox) -> Vector3
 func get_angular_gradient(node : PhysicalBox) -> Vector3
 
 func get_compliance() -> float:
-    return 0.001
+    return 0.01
 
 func get_delta_lambda(node : PhysicalBox, delta : float) -> float:
     var a_tilde := get_compliance() / (delta * delta)

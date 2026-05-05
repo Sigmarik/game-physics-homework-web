@@ -5,6 +5,15 @@ var bodies: Array[PhysicalBox]
 @export var apply_gyro_term = true
 @export var use_implicit_term = true
 
+enum ConstraintResolutionMode
+{
+	xPBD,
+	explicit_forces,
+	soft_constraints
+}
+
+@export var constraint_mode := ConstraintResolutionMode.xPBD
+
 func update_rigid_body_list():
 	var unfiltered_bodies = get_tree().get_nodes_in_group("xpbd_bodies")
 	bodies.clear()
@@ -44,9 +53,13 @@ func _physics_process(delta: float) -> void:
 
 		body.reset_constraint_lambdas()
 	
-	for idx in range(10):
+	if constraint_mode == ConstraintResolutionMode.xPBD:
+		for idx in range(10):
+			for body in bodies:
+				body.iterate_constraints_xpbd(delta)
+	elif constraint_mode == ConstraintResolutionMode.explicit_forces:
 		for body in bodies:
-			body.iterate_constraints(delta)
+			body.iterate_constraints_explicit(delta)
 	
 	for body in bodies:
 		body.custom_angular_velocity = PhysicalBox.rotation_difference(body.old_basis, body.global_basis) / delta

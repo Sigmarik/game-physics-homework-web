@@ -14,6 +14,8 @@ var old_basis := Basis()
 
 var constraints : Array[Constraint] = []
 
+@export var add_spring_constraint := false
+
 
 func get_local_inertia_diag() -> Vector3:
 	# 1) Find the box shape
@@ -57,9 +59,10 @@ func _ready() -> void:
 	freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
 	freeze = true
 
-	# var spring := SpringConstraint.new()
-	# spring.relative_shift = Vector3(0.1, 1, 0.1)
-	# constraints.append(spring)
+	if add_spring_constraint:
+		var spring := SpringConstraint.new()
+		spring.relative_shift = Vector3(0.1, 1, 0.1)
+		constraints.append(spring)
 
 func apply_rot_difference(axis_angle : Vector3) -> void:
 	var angle = axis_angle.length()
@@ -163,13 +166,31 @@ func reset_constraint_lambdas() -> void:
 		constraint.lambda = 0
 
 
-func iterate_constraints(delta : float) -> void:
+func iterate_constraints_xpbd(delta : float) -> void:
 	var linear_shift := Vector3.ZERO
 	var rotation_shift := Vector3.ZERO
 	for constraint in constraints:
 		var shift := constraint.get_delta_and_update_lambda(self, delta)
 		linear_shift += shift.positional
 		rotation_shift += shift.angular
+	global_position += linear_shift
+	apply_rot_difference(rotation_shift)
+
+func iterate_constraints_explicit(delta : float) -> void:
+	var linear_shift := Vector3.ZERO
+	var rotation_shift := Vector3.ZERO
+	for constraint in constraints:
+		var value := constraint.get_constraint_value(self)
+		var linear_gradient := constraint.get_positional_gradient(self)
+		var angular_gradient := constraint.get_angular_gradient(self)
+		if value > 0:
+			linear_gradient *= -1
+			angular_gradient *= -1
+
+		linear_gradient /= constraint.get_compliance()
+		angular_gradient /= constraint.get_compliance()
+		linear_shift += linear_gradient * delta * delta
+		rotation_shift += angular_gradient * delta * delta
 	global_position += linear_shift
 	apply_rot_difference(rotation_shift)
 
