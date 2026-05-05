@@ -1,11 +1,51 @@
+class_name PhysicalBox
 extends RigidBody3D
 
 
 @export var show_angular_velocity = true
 @export var show_initial_angular_velocity = true
 
-var custom_angular_velocity : Vector3 = Vector3.ZERO
 @export var initial_angular_velocity : Vector3 = Vector3(0, 0.1, 1) * 5
+var custom_angular_velocity : Vector3 = Vector3.ZERO
+var custom_velocity : Vector3 = Vector3.ZERO
+
+var old_position := Vector3.ZERO
+var old_basis := Basis()
+
+var constraints : Array[Constraint] = []
+
+
+func get_local_inertia_diag() -> Vector3:
+	# 1) Find the box shape
+	var shape_node: CollisionShape3D = null
+	for child in get_children():
+		if child is CollisionShape3D:
+			shape_node = child
+			break
+	if shape_node == null:
+		push_error("PhysicalBox has no CollisionShape3D child.")
+		return Vector3.ZERO
+
+	var box_shape: BoxShape3D = shape_node.shape as BoxShape3D
+	if box_shape == null:
+		push_error("CollisionShape3D does not contain a BoxShape3D.")
+		return Vector3.ZERO
+
+	# 2) Get the full dimensions (extents are half the size)
+	var half_ext: Vector3 = box_shape.extents
+	var w: float = half_ext.x * 2.0
+	var h: float = half_ext.y * 2.0
+	var d: float = half_ext.z * 2.0
+
+	# 3) Mass – use the body’s mass property
+	var m: float = mass
+
+	# 4) Principal moments for a uniform box
+	var Ix: float = (m / 12.0) * (h * h + d * d)
+	var Iy: float = (m / 12.0) * (w * w + d * d)
+	var Iz: float = (m / 12.0) * (w * w + h * h)
+
+	return Vector3(Ix, Iy, Iz)
 
 
 func _ready() -> void:
@@ -14,10 +54,31 @@ func _ready() -> void:
 
 	custom_angular_velocity = initial_angular_velocity
 
+	freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
+	freeze = true
+
+	# var spring := SpringConstraint.new()
+	# spring.relative_shift = Vector3(0.1, 1, 0.1)
+	# constraints.append(spring)
+
+func apply_rot_difference(axis_angle : Vector3) -> void:
+	var angle = axis_angle.length()
+	if angle > 0.0001:
+		var axis = axis_angle.normalized()
+		var rot = Basis(axis, angle)
+		global_transform.basis = rot * global_transform.basis
+
+
+static func rotation_difference(basis_a : Basis, basis_b : Basis) -> Vector3:
+	var diff_basis := basis_b.orthonormalized() * basis_a.orthonormalized().inverse()
+	var quat := diff_basis.get_rotation_quaternion().normalized()
+	return quat.get_axis().normalized() * quat.get_angle()
+
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	# Do nothing
-	pass
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
 
 
 func _process(delta: float) -> void:
@@ -29,17 +90,33 @@ func _process(delta: float) -> void:
 
 
 func get_ws_inertia() -> Basis:
-	return get_inverse_inertia_tensor().inverse()
+	var I_local_vec := get_local_inertia_diag()
+	var I_local := Basis.from_scale(I_local_vec)
+	var R := global_basis
+	return R * I_local * R.transposed()
+
+
+func get_inverse_inertia_ws() -> Basis:
+	var I_local_vec := get_local_inertia_diag()
+	if I_local_vec.x == 0 or I_local_vec.y == 0 or I_local_vec.z == 0:
+		push_error("Mass is zero -> infinite inertia.")
+		return Basis()  # zero matrix
+
+	var inv_diag := Vector3.ONE / I_local_vec
+	var I_inv_local := Basis.from_scale(inv_diag)
+	var R := global_basis
+	return R * I_inv_local * R.transposed()
 
 
 func get_gyroscopic_term() -> Vector3:
 	var momentum_derivative := -custom_angular_velocity.cross(get_ws_inertia() * custom_angular_velocity)
-	return get_inverse_inertia_tensor() * momentum_derivative
+	return get_inverse_inertia_ws() * momentum_derivative
+
 
 func get_implicit_gyroscopic_term(delta: float) -> Vector3:
 	# Get inertia tensor (world space) and its inverse
 	var I: Basis = get_ws_inertia()
-	var I_inv: Basis = get_inverse_inertia_tensor()
+	var I_inv: Basis = get_inverse_inertia_ws()
 
 	# Current angular velocity
 	var omega_old: Vector3 = custom_angular_velocity
@@ -61,3 +138,38 @@ func get_implicit_gyroscopic_term(delta: float) -> Vector3:
     
 	# Return angular acceleration (implicit gyroscopic term)
 	return (omega_new - omega_old) / delta
+
+
+static func basis_to_rotation_vector(basis: Basis) -> Vector3:
+    # A Basis can contain scale, but a Quaternion represents a pure rotation.
+    # Using orthonormalized() removes scale and skew for an accurate conversion.
+	var quat := Quaternion(basis.orthonormalized())
+    # get_angle() returns the float, get_axis() returns the Vector3 (which is normalized).
+	return quat.get_axis() * quat.get_angle()
+
+
+static func rotation_vector_to_basis(rot_vec: Vector3) -> Basis:
+	var angle := rot_vec.length()
+	# A zero rotation shouldn't cause a zero-length axis error.
+	if angle == 0.0:
+		return Basis()
+	var axis := rot_vec.normalized()
+	# Godot's Basis constructor creates a pure rotation matrix from an axis and angle.
+	return Basis(axis, angle)
+
+
+func reset_constraint_lambdas() -> void:
+	for constraint in constraints:
+		constraint.lambda = 0
+
+
+func iterate_constraints(delta : float) -> void:
+	var linear_shift := Vector3.ZERO
+	var rotation_shift := Vector3.ZERO
+	for constraint in constraints:
+		var shift := constraint.get_delta_and_update_lambda(self, delta)
+		linear_shift += shift.positional
+		rotation_shift += shift.angular
+	global_position += linear_shift
+	apply_rot_difference(rotation_shift)
+
