@@ -274,3 +274,30 @@ func iterate_soft_constraints(delta: float) -> void:
 	# Position integration using the new velocities
 	global_position += linear_shift * delta * delta / mass
 	apply_rot_difference(get_inverse_inertia_ws() * rotation_shift * delta * delta)
+
+func apply_impulse_at_point(impulse : Vector3, local_point : Vector3) -> void:
+	var global_arm := global_basis * local_point
+	var linear_impulse := impulse.normalized() * impulse.dot(global_arm.normalized())
+	var angular_impulse := impulse.cross(global_arm)
+	custom_velocity += linear_impulse / mass
+	custom_angular_velocity += get_inverse_inertia_ws() * angular_impulse
+
+func resolve_velocity_difference_at_point(velocity_change : Vector3, local_point : Vector3) -> void:
+	# custom_velocity += velocity_change
+	var global_arm := global_basis * local_point
+	var linear_impulse = velocity_change.normalized() * abs(velocity_change.dot(global_arm.normalized()))
+	var angular_vel_change := -velocity_change.cross(global_arm)
+	custom_velocity += linear_impulse
+	# Should have accounted for the object's inertia but meh...
+	custom_angular_velocity += angular_vel_change
+
+func resolve_position_delta_at_point(pos_change : Vector3, _local_point : Vector3) -> void:
+	global_position += pos_change
+
+func get_velocity_at_point(local_point : Vector3) -> Vector3:
+	var global_arm := global_basis * local_point
+	return custom_velocity + custom_angular_velocity.cross(global_arm)
+
+func resolve_constraints_using_sequential_impulses() -> void:
+	for constraint in constraints:
+		constraint.apply_sequential_impulses(self)

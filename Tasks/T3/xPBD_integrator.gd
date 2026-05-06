@@ -9,7 +9,8 @@ enum ConstraintResolutionMode
 {
 	xPBD,
 	explicit_forces,
-	soft_constraints
+	soft_constraints,
+	sequential_impulses
 }
 
 @export var constraint_mode := ConstraintResolutionMode.xPBD
@@ -52,7 +53,8 @@ func _physics_process(delta: float) -> void:
 				gyroscopic_term = body.get_gyroscopic_term()
 			body.custom_angular_velocity += gyroscopic_term * delta
 		body.apply_rot_difference(body.custom_angular_velocity * delta)
-		body.global_position += body.custom_velocity * delta + delta * delta * body.gravity_scale * Vector3(0, -9.8, 0) * 0.5
+		body.custom_velocity += body.gravity_scale * Vector3(0, -9.8, 0) * 0.5 * delta
+		body.global_position += body.custom_velocity * delta
 
 		body.reset_constraint_lambdas()
 	
@@ -66,7 +68,13 @@ func _physics_process(delta: float) -> void:
 	elif constraint_mode == ConstraintResolutionMode.soft_constraints:
 		for body in bodies:
 			body.iterate_soft_constraints(delta)
+	elif constraint_mode == ConstraintResolutionMode.sequential_impulses:
+		for idx in range(50):
+			for body in bodies:
+				body.resolve_constraints_using_sequential_impulses()
+
 	
-	for body in bodies:
-		body.custom_angular_velocity = PhysicalBox.rotation_difference(body.old_basis, body.global_basis) / delta
-		body.custom_velocity = (body.global_position - body.old_position) / delta
+	if constraint_mode != ConstraintResolutionMode.sequential_impulses:
+		for body in bodies:
+			body.custom_angular_velocity = PhysicalBox.rotation_difference(body.old_basis, body.global_basis) / delta
+			body.custom_velocity = (body.global_position - body.old_position) / delta
