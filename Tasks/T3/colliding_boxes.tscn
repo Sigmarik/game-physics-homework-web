@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://bpgfasdo3ha0v"]
+
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_dj5xm"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_7aehq"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_xu7gh"]
+[ext_resource type="Script" uid="uid://bygq0e7a2yvl0" path="res://Tasks/T3/bb_adjustable_mesh.gd" id="4_m7nsu"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
+size = Vector3(0.6982422, 1.2069855, 0.6865845)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
+size = Vector3(0.6982422, 1.2069855, 0.6865845)
+
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_dj5xm")]
+script = ExtResource("2_7aehq")
+collision_mode = 1
+
+[node name="RigidBody3D" type="RigidBody3D" parent="." index="4" unique_id=1892616116]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
+gravity_scale = 0.0
+script = ExtResource("3_xu7gh")
+show_angular_velocity = false
+show_initial_angular_velocity = false
+initial_angular_velocity = Vector3(0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" index="0" unique_id=1690204462]
+mesh = SubResource("BoxMesh_qq4pt")
+script = ExtResource("4_m7nsu")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" index="1" unique_id=1692838960]
+shape = SubResource("BoxShape3D_qq4pt")
+
+[node name="RigidBody3D2" type="RigidBody3D" parent="." index="5" unique_id=2028103239]
+transform = Transform3D(-0.49046373, -0.051671833, -0.8699284, -0.820796, 0.36280072, 0.4412136, 0.29281223, 0.930433, -0.22035258, -0.03475398, 1.0318465, -0.06849104)
+mass = 2.0
+script = ExtResource("3_xu7gh")
+show_angular_velocity = false
+show_initial_angular_velocity = false
+initial_angular_velocity = Vector3(0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D2" index="0" unique_id=2086515652]
+mesh = SubResource("BoxMesh_qq4pt")
+script = ExtResource("4_m7nsu")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D2" index="1" unique_id=859079832]
+shape = SubResource("BoxShape3D_qq4pt")

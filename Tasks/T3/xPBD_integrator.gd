@@ -5,6 +5,8 @@ var bodies: Array[PhysicalBox]
 @export var apply_gyro_term = true
 @export var use_implicit_term = true
 
+var paused := false
+
 enum ConstraintResolutionMode
 {
 	xPBD,
@@ -13,7 +15,17 @@ enum ConstraintResolutionMode
 	sequential_impulses
 }
 
+enum CollisionDetectionMode
+{
+	none,
+	each_to_each,
+	spatial_grid,
+	sweep_and_prune,
+	bounding_volume_hierarchy
+}
+
 @export var constraint_mode := ConstraintResolutionMode.xPBD
+@export var collision_mode := CollisionDetectionMode.none
 
 func update_rigid_body_list():
 	var unfiltered_bodies = get_tree().get_nodes_in_group("xpbd_bodies")
@@ -27,6 +39,11 @@ func _ready() -> void:
 	update_rigid_body_list.call_deferred()
 
 
+func _input(event):
+	if event.is_action_pressed("ui_accept"):
+		paused = not paused
+
+
 func _process(_delta: float) -> void:
 	for body in bodies:
 		if body.show_angular_velocity:
@@ -37,10 +54,31 @@ func _process(_delta: float) -> void:
 
 	for body in bodies:
 		body.draw_constraints()
+		body.debug_draw()
+
+
+func detect_collisions_per_object_pair() -> void:
+	for i in range(bodies.size() - 1):
+		for j in range(i + 1, bodies.size()):
+			var alpha := bodies[i]
+			var beta := bodies[j]
+			PhysicalBox.add_optional_collision_constraints(alpha, beta)
+
+
+func detect_collisions() -> void:
+	if collision_mode == CollisionDetectionMode.none: return
+	if bodies.size() < 2: return
+
+	if collision_mode == CollisionDetectionMode.each_to_each: detect_collisions_per_object_pair()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
+	if paused: return
+
+	for body in bodies:
+		body.reset_temporary_constraints()
+
 	for body in bodies:
 		body.old_basis = body.global_basis
 		body.old_position = body.global_position
@@ -57,6 +95,8 @@ func _physics_process(delta: float) -> void:
 		body.global_position += body.custom_velocity * delta
 
 		body.reset_constraint_lambdas()
+
+	detect_collisions()
 	
 	if constraint_mode == ConstraintResolutionMode.xPBD:
 		for idx in range(10):

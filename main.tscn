@@ -118,3 +118,14 @@ text = "T3.2 Two Boxes,
 Sequential Impulses"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/two_boxes_sequential.tscn"
+
+[node name="Button12" type="Button" parent="CanvasLayer" unique_id=2108648456]
+offset_left = 392.0
+offset_top = 496.0
+offset_right = 564.0
+offset_bottom = 550.0
+tooltip_text = "Balls"
+text = "T3.2 Collisions,
+XPDB"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/colliding_boxes.tscn"
