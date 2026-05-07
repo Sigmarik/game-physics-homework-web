@@ -71,7 +71,7 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
 
     var projected_vel_difference := relative_velocity.project(normal)
 
-    DebugDraw3D.draw_arrow(global_pivot, global_pivot - position_shift, Color.BLUE, 0.1, true)
+    # DebugDraw3D.draw_arrow(global_pivot, global_pivot - position_shift, Color.BLUE, 0.1, true)
     node.resolve_position_delta_at_point(-position_shift * this_fraction, relative_shift)
     if anchor_object is PhysicalBox:
         var anchor_box := anchor_object as PhysicalBox

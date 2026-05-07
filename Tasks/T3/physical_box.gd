@@ -288,11 +288,22 @@ func resolve_velocity_difference_at_point(velocity_change : Vector3, local_point
 	var linear_impulse = velocity_change.normalized() * abs(velocity_change.dot(global_arm.normalized()))
 	var angular_vel_change := -velocity_change.cross(global_arm)
 	custom_velocity += linear_impulse
-	# Should have accounted for the object's inertia but meh...
-	custom_angular_velocity += angular_vel_change
+	
+	if angular_vel_change.length_squared() > 0:
+		var impulsed_change := get_inverse_inertia_ws() * angular_vel_change
+		var corrective_multiplier := angular_vel_change.length() / impulsed_change.dot(angular_vel_change.normalized())
+		custom_angular_velocity += impulsed_change * corrective_multiplier
 
-func resolve_position_delta_at_point(pos_change : Vector3, _local_point : Vector3) -> void:
-	global_position += pos_change
+func resolve_position_delta_at_point(pos_change : Vector3, local_point : Vector3) -> void:
+	var global_arm := global_basis * local_point
+	var linear_impulse = pos_change.normalized() * abs(pos_change.dot(global_arm.normalized()))
+	var angular_vel_change := -pos_change.cross(global_arm)
+	global_position += linear_impulse
+	
+	if angular_vel_change.length_squared() > 0:
+		var impulsed_change := get_inverse_inertia_ws() * angular_vel_change
+		var corrective_multiplier := angular_vel_change.length() / impulsed_change.dot(angular_vel_change.normalized())
+		apply_rot_difference(impulsed_change * corrective_multiplier)
 
 func get_velocity_at_point(local_point : Vector3) -> Vector3:
 	var global_arm := global_basis * local_point
