@@ -1,9 +1,42 @@
+@tool
+
 class_name PhysicalBox
 extends RigidBody3D
 
 
 @export var show_angular_velocity = true
 @export var show_initial_angular_velocity = true
+@export var stationary = false
+var _size := Vector3(1, 1, 1)
+
+@export var size: Vector3 = Vector3(1, 1, 1):
+	get:
+		return _size
+	set(value):
+		_size = value
+
+		# 1) Find and update the BoxShape3D
+		var shape_node: CollisionShape3D = null
+		for child in get_children():
+			if child is CollisionShape3D:
+				shape_node = child.duplicate(true)
+				remove_child(child)
+				add_child(shape_node)
+				break
+
+		if shape_node:
+			var box = BoxShape3D.new()
+			box.size = value
+			shape_node.shape = box
+
+		# 2) Refresh the locally cached half-extents
+		extent = get_extent()
+
+		# 3) If you also want to resize a visual mesh
+		for child in get_children():
+			if child is MeshInstance3D:
+				child.scale = value
+				break
 
 @export var initial_angular_velocity : Vector3 = Vector3(0, 0.1, 1) * 5
 var custom_angular_velocity : Vector3 = Vector3.ZERO
@@ -25,21 +58,7 @@ func reset_temporary_constraints() -> void:
 
 
 func get_extent() -> Vector3:
-	var shape_node: CollisionShape3D = null
-	for child in get_children():
-		if child is CollisionShape3D:
-			shape_node = child
-			break
-	if shape_node == null:
-		push_error("PhysicalBox has no CollisionShape3D child.")
-		return Vector3.ZERO
-
-	var box_shape: BoxShape3D = shape_node.shape as BoxShape3D
-	if box_shape == null:
-		push_error("CollisionShape3D does not contain a BoxShape3D.")
-		return Vector3.ZERO
-
-	return box_shape.size * 0.5
+	return size * 0.5
 
 
 func get_local_inertia_diag() -> Vector3:
@@ -76,10 +95,6 @@ func get_local_inertia_diag() -> Vector3:
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint():
-		# Editor: do nothing permanent, just let _process draw
-		return
-
 	add_to_group("xpbd_bodies")
 	custom_integrator = true
 
@@ -337,6 +352,7 @@ func get_velocity_at_point(local_point : Vector3) -> Vector3:
 	return custom_velocity + custom_angular_velocity.cross(global_arm)
 
 func resolve_constraints_using_sequential_impulses() -> void:
+	if stationary: return
 	for constraint in constraints + temporary_constraints:
 		constraint.apply_sequential_impulses(self)
 
@@ -583,7 +599,7 @@ static func add_optional_collision_constraints(alpha: PhysicalBox, beta: Physica
 	ac.anchor_position = local_beta_point
 	ac.relative_shift = local_alpha_point
 	ac.allowed_length = 0.0
-	ac.compliance = 0.001
+	ac.compliance = 0.00001
 	alpha.temporary_constraints.append(ac)
 
 	# Symmetric constraint from beta's view
@@ -592,5 +608,5 @@ static func add_optional_collision_constraints(alpha: PhysicalBox, beta: Physica
 	bc.anchor_position = local_alpha_point
 	bc.relative_shift = local_beta_point
 	bc.allowed_length = 0.0
-	bc.compliance = 0.001
+	bc.compliance = 0.00001
 	beta.temporary_constraints.append(bc)

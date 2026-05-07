@@ -61,7 +61,7 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
 
     var this_fraction : float = 1
     var that_fraction : float = 0
-    if anchor_object is PhysicalBox:
+    if anchor_object is PhysicalBox and !anchor_object.stationary:
         var anchor_box := anchor_object as PhysicalBox
         anchor_velocity = anchor_box.get_velocity_at_point(anchor_position)
         relative_velocity -= anchor_velocity
@@ -73,7 +73,7 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
 
     # DebugDraw3D.draw_arrow(global_pivot, global_pivot - position_shift, Color.BLUE, 0.1, true)
     node.resolve_position_delta_at_point(-position_shift * this_fraction, relative_shift)
-    if anchor_object is PhysicalBox:
+    if anchor_object is PhysicalBox and !anchor_object.stationary:
         var anchor_box := anchor_object as PhysicalBox
         anchor_box.resolve_position_delta_at_point(position_shift * that_fraction, anchor_position)
 
@@ -81,7 +81,7 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
         return
 
     node.resolve_velocity_difference_at_point(-projected_vel_difference * this_fraction, relative_shift)
-    if anchor_object is PhysicalBox:
+    if anchor_object is PhysicalBox and !anchor_object.stationary:
         var anchor_box := anchor_object as PhysicalBox
         anchor_box.resolve_velocity_difference_at_point(projected_vel_difference * that_fraction, anchor_position)
         anchor_box.resolve_position_delta_at_point(-position_shift * that_fraction, anchor_position)

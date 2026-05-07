@@ -1,25 +1,24 @@
 [gd_scene format=3 uid="uid://ey6pfk5qb52x"]
 
-[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="1_5653y"]
-[ext_resource type="Script" uid="uid://bygq0e7a2yvl0" path="res://Tasks/T3/bb_adjustable_mesh.gd" id="2_fmyxv"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="1_fmyxv"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
-size = Vector3(0.6982422, 1.2069855, 0.6865845)
+[sub_resource type="BoxMesh" id="BoxMesh_dj5xm"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
-size = Vector3(0.6982422, 1.2069855, 0.6865845)
+[sub_resource type="BoxShape3D" id="BoxShape3D_fmyxv"]
 
-[node name="RigidBody3D" type="RigidBody3D" unique_id=247578335]
-transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, 0, 0, 0)
-mass = 0.1
-script = ExtResource("1_5653y")
+[node name="RigidBody3D2" type="RigidBody3D" unique_id=697888693]
+mass = 2.0
+freeze = true
+custom_integrator = true
+script = ExtResource("1_fmyxv")
 show_angular_velocity = false
 show_initial_angular_velocity = false
 initial_angular_velocity = Vector3(0, 0, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=698322101]
-mesh = SubResource("BoxMesh_qq4pt")
-script = ExtResource("2_fmyxv")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1732763569]
+transform = Transform3D(1.0000002, -2.682209e-07, -2.2351742e-08, 2.3841858e-07, 0.9999999, -1.4901161e-08, -3.2037497e-07, 2.9802322e-08, 1, 0, 0, 0)
+mesh = SubResource("BoxMesh_dj5xm")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=857883774]
-shape = SubResource("BoxShape3D_qq4pt")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1418688707]
+transform = Transform3D(1.0000002, -2.682209e-07, -2.2351742e-08, 2.3841858e-07, 0.9999999, -1.4901161e-08, -3.2037497e-07, 2.9802322e-08, 1, 0, 0, 0)
+shape = SubResource("BoxShape3D_fmyxv")
