@@ -1,10 +1,10 @@
-[gd_scene format=3 uid="uid://djxc224at6tq0"]
+[gd_scene format=3 uid="uid://wnmchvkrtq2f"]
 
-[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_42nj5"]
-[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_5a41l"]
-[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_2simj"]
-[ext_resource type="Script" uid="uid://bygq0e7a2yvl0" path="res://Tasks/T3/bb_adjustable_mesh.gd" id="4_2simj"]
-[ext_resource type="Script" uid="uid://chujustyblqds" path="res://Tasks/T3/constraint_placer.gd" id="4_5a41l"]
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_5krx0"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_61gc5"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_paw8f"]
+[ext_resource type="Script" uid="uid://bygq0e7a2yvl0" path="res://Tasks/T3/bb_adjustable_mesh.gd" id="4_2mdus"]
+[ext_resource type="Script" uid="uid://chujustyblqds" path="res://Tasks/T3/constraint_placer.gd" id="5_y5ctj"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
 size = Vector3(0.6982422, 1.2069855, 0.6865845)
@@ -12,19 +12,20 @@ size = Vector3(0.6982422, 1.2069855, 0.6865845)
 [sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
 size = Vector3(0.6982422, 1.2069855, 0.6865845)
 
-[node name="Preset" unique_id=356544197 instance=ExtResource("1_42nj5")]
-script = ExtResource("2_5a41l")
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_5krx0")]
+script = ExtResource("2_61gc5")
+constraint_mode = 3
 
 [node name="RigidBody3D" type="RigidBody3D" parent="." index="5" unique_id=1892616116]
 transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, -0.75393224, 0.66502523, 2.3841858e-07)
-script = ExtResource("3_2simj")
+script = ExtResource("3_paw8f")
 show_angular_velocity = false
 show_initial_angular_velocity = false
 initial_angular_velocity = Vector3(0, 0, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" index="0" unique_id=1690204462]
 mesh = SubResource("BoxMesh_qq4pt")
-script = ExtResource("4_2simj")
+script = ExtResource("4_2mdus")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" index="1" unique_id=1692838960]
 shape = SubResource("BoxShape3D_qq4pt")
@@ -32,25 +33,25 @@ shape = SubResource("BoxShape3D_qq4pt")
 [node name="RigidBody3D2" type="RigidBody3D" parent="." index="6" unique_id=2028103239]
 transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, -0.66529447, 2.3150554, 1.1920929e-07)
 mass = 2.0
-script = ExtResource("3_2simj")
+script = ExtResource("3_paw8f")
 show_angular_velocity = false
 show_initial_angular_velocity = false
 initial_angular_velocity = Vector3(0, 0, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D2" index="0" unique_id=2086515652]
 mesh = SubResource("BoxMesh_qq4pt")
-script = ExtResource("4_2simj")
+script = ExtResource("4_2mdus")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D2" index="1" unique_id=859079832]
 shape = SubResource("BoxShape3D_qq4pt")
 
 [node name="Placer" type="Node3D" parent="." index="7" unique_id=1302456579 node_paths=PackedStringArray("first_object")]
-script = ExtResource("4_5a41l")
+script = ExtResource("5_y5ctj")
 first_object = NodePath("../RigidBody3D")
 first_shift = Vector3(0.35, 0.605, 0.35)
 
 [node name="Placer2" type="Node3D" parent="." index="8" unique_id=202664720 node_paths=PackedStringArray("first_object", "second_object")]
-script = ExtResource("4_5a41l")
+script = ExtResource("5_y5ctj")
 first_object = NodePath("../RigidBody3D2")
 first_shift = Vector3(0.35, 0, 0)
 second_object = NodePath("../RigidBody3D")
