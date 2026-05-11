@@ -167,6 +167,99 @@ func detect_collisions_sweep_and_prune() -> void:
 					PhysicalBox.add_optional_collision_constraints(body_a, body_b)
 
 
+func detect_collisions_lbvh() -> void:
+	if bodies.size() < 2: return
+
+	# --- Compute centroids and bounding box of all centroids ---
+	var centroid_min := bodies[0].get_aabb().get_center()
+	var centroid_max := centroid_min
+	var centroids : Array[Vector3] = []
+	for body in bodies:
+		var center := body.get_aabb().get_center()
+		centroids.append(center)
+		centroid_min = centroid_min.min(center)
+		centroid_max = centroid_max.max(center)
+
+	var epsilon := 0.001
+	var range_x = max(centroid_max.x - centroid_min.x, epsilon)
+	var range_y = max(centroid_max.y - centroid_min.y, epsilon)
+	var range_z = max(centroid_max.z - centroid_min.z, epsilon)
+	var scale_x = 1023.0 / range_x
+	var scale_y = 1023.0 / range_y
+	var scale_z = 1023.0 / range_z
+
+	# --- Assign Morton-like codes (concatenated 10‑bit coordinates) ---
+	var morton_items := []
+	for index in range(bodies.size()):
+		var center := centroids[index]
+		var x_norm := int(clamp((center.x - centroid_min.x) * scale_x, 0.0, 1023.0))
+		var y_norm := int(clamp((center.y - centroid_min.y) * scale_y, 0.0, 1023.0))
+		var z_norm := int(clamp((center.z - centroid_min.z) * scale_z, 0.0, 1023.0))
+		var code := (x_norm << 20) | (y_norm << 10) | z_norm
+		morton_items.append({"code": code, "body_index": index, "aabb": bodies[index].get_aabb()})
+
+	morton_items.sort_custom(_compare_morton)
+
+	# --- Build BVH tree ---
+	var root_node = _build_lbvh_tree(morton_items, 0, morton_items.size() - 1)
+
+	# --- Traverse BVH to register collision constraints ---
+	var processed_pairs : Dictionary = {}
+	_traverse_lbvh_self(root_node, bodies, processed_pairs)
+
+
+# --- LBVH helper functions (defined as class members) ---
+
+func _compare_morton(left, right) -> bool:
+	return left.code < right.code
+
+
+func _build_lbvh_tree(morton_items : Array, start_index : int, end_index : int):
+	if start_index == end_index:
+		var item = morton_items[start_index]
+		return {"is_leaf": true, "body_index": item.body_index, "aabb": item.aabb}
+	var mid := (start_index + end_index) / 2
+	var left_node = _build_lbvh_tree(morton_items, start_index, mid)
+	var right_node = _build_lbvh_tree(morton_items, mid + 1, end_index)
+	var merged_aabb = left_node.aabb.merge(right_node.aabb)
+	return {"is_leaf": false, "left": left_node, "right": right_node, "aabb": merged_aabb}
+
+
+func _traverse_lbvh_self(node, bodies : Array, processed_pairs : Dictionary) -> void:
+	if not node.is_leaf:
+		_traverse_lbvh_self(node.left, bodies, processed_pairs)
+		_traverse_lbvh_self(node.right, bodies, processed_pairs)
+		_traverse_lbvh_pair(node.left, node.right, bodies, processed_pairs)
+
+
+func _traverse_lbvh_pair(node_a, node_b, bodies : Array, processed_pairs : Dictionary) -> void:
+	if not node_a.aabb.intersects(node_b.aabb): return
+
+	if node_a.is_leaf and node_b.is_leaf:
+		if node_a.body_index == node_b.body_index: return
+		var body_a = bodies[node_a.body_index]
+		var body_b = bodies[node_b.body_index]
+		var id_a = body_a.get_instance_id()
+		var id_b = body_b.get_instance_id()
+		var pair_key = Vector2i(min(id_a, id_b), max(id_a, id_b))
+		if not processed_pairs.has(pair_key):
+			processed_pairs[pair_key] = true
+			PhysicalBox.add_optional_collision_constraints(body_a, body_b)
+		return
+
+	if node_a.is_leaf:
+		_traverse_lbvh_pair(node_a, node_b.left, bodies, processed_pairs)
+		_traverse_lbvh_pair(node_a, node_b.right, bodies, processed_pairs)
+	elif node_b.is_leaf:
+		_traverse_lbvh_pair(node_a.left, node_b, bodies, processed_pairs)
+		_traverse_lbvh_pair(node_a.right, node_b, bodies, processed_pairs)
+	else:
+		_traverse_lbvh_pair(node_a.left, node_b.left, bodies, processed_pairs)
+		_traverse_lbvh_pair(node_a.left, node_b.right, bodies, processed_pairs)
+		_traverse_lbvh_pair(node_a.right, node_b.left, bodies, processed_pairs)
+		_traverse_lbvh_pair(node_a.right, node_b.right, bodies, processed_pairs)
+
+
 func detect_collisions() -> void:
 	if collision_mode == CollisionDetectionMode.none: return
 	if bodies.size() < 2: return
@@ -174,6 +267,7 @@ func detect_collisions() -> void:
 	if collision_mode == CollisionDetectionMode.each_to_each: detect_collisions_per_object_pair()
 	if collision_mode == CollisionDetectionMode.spatial_grid: detect_collisions_gridded()
 	if collision_mode == CollisionDetectionMode.sweep_and_prune: detect_collisions_sweep_and_prune()
+	if collision_mode == CollisionDetectionMode.bounding_volume_hierarchy: detect_collisions_lbvh()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

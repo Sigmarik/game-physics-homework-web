@@ -173,3 +173,14 @@ text = "T3.4 Collisions,
 Sweep and Prune"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/colliding_boxes_sweep_and_prune.tscn"
+
+[node name="Button17" type="Button" parent="CanvasLayer" unique_id=1422738867]
+offset_left = 944.0
+offset_top = 96.0
+offset_right = 1116.0
+offset_bottom = 150.0
+tooltip_text = "Balls"
+text = "T3.4 Collisions,
+LBVH"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/colliding_boxes_lbvh.tscn"
