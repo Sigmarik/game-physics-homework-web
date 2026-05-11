@@ -136,12 +136,44 @@ func detect_collisions_gridded() -> void:
 			PhysicalBox.add_optional_collision_constraints(omni, regular)
 
 
+func detect_collisions_sweep_and_prune() -> void:
+	if bodies.size() < 2: return
+
+	var processed_pairs : Dictionary = {}
+	var intervals : Array = []
+
+	for body in bodies:
+		var aabb = body.get_aabb()
+		var min_x = aabb.position.x
+		var max_x = aabb.position.x + aabb.size.x
+		intervals.append([min_x, max_x, body, aabb])
+
+	intervals.sort_custom(func(left, right): return left[0] < right[0])
+
+	for index_a in range(intervals.size()):
+		var interval_a = intervals[index_a]
+		for index_b in range(index_a + 1, intervals.size()):
+			var interval_b = intervals[index_b]
+			if interval_b[0] > interval_a[1]:
+				break
+			if interval_a[3].intersects(interval_b[3]):
+				var body_a : PhysicalBox = interval_a[2]
+				var body_b : PhysicalBox = interval_b[2]
+				var id_a = body_a.get_instance_id()
+				var id_b = body_b.get_instance_id()
+				var pair_key = Vector2i(min(id_a, id_b), max(id_a, id_b))
+				if not processed_pairs.has(pair_key):
+					processed_pairs[pair_key] = true
+					PhysicalBox.add_optional_collision_constraints(body_a, body_b)
+
+
 func detect_collisions() -> void:
 	if collision_mode == CollisionDetectionMode.none: return
 	if bodies.size() < 2: return
 
 	if collision_mode == CollisionDetectionMode.each_to_each: detect_collisions_per_object_pair()
 	if collision_mode == CollisionDetectionMode.spatial_grid: detect_collisions_gridded()
+	if collision_mode == CollisionDetectionMode.sweep_and_prune: detect_collisions_sweep_and_prune()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
