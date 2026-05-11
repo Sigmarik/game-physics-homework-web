@@ -66,6 +66,8 @@ func draw_constraint(node : PhysicalBox) -> void:
 	var pivot_shift := node.global_basis * relative_shift
 	var global_pivot := node.global_position + pivot_shift
 	var anchor := get_anchor_pos()
+	if anchor.distance_squared_to(global_pivot) < 1e-9:
+		return
 	DebugDraw3D.draw_line(global_pivot, anchor, Color.RED)
 
 # What a nice and non-convoluted way of resolving rigid constraints.
@@ -76,7 +78,7 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
 	var pivot_shift := node.global_basis * relative_shift
 	var global_pivot := node.global_position + pivot_shift
 	var delta := get_anchor_pos() - global_pivot
-	var normal := delta.normalized()
+	var normal := world_normal
 	var position_shift := delta.project(world_normal)
 
 	var anchor_velocity := Vector3.ZERO
@@ -95,14 +97,14 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
 
 	var projected_vel_difference := relative_velocity.project(normal)
 
-	# DebugDraw3D.draw_arrow(global_pivot, global_pivot - position_shift, Color.BLUE, 0.1, true)
-	node.resolve_position_delta_at_point(-position_shift * this_fraction, relative_shift)
-	if anchor_object is PhysicalBox and !anchor_object.stationary:
-		var anchor_box := anchor_object as PhysicalBox
-		anchor_box.resolve_position_delta_at_point(position_shift * that_fraction, anchor_position)
+	if position_shift.dot(world_normal) > 0:
+		node.resolve_shift_at_point(position_shift * this_fraction, relative_shift)
+		if anchor_object is PhysicalBox and !anchor_object.stationary:
+			var anchor_box := anchor_object as PhysicalBox
+			anchor_box.resolve_shift_at_point(-position_shift * that_fraction, anchor_position)
 
-	node.resolve_velocity_difference_at_point(-projected_vel_difference * this_fraction, relative_shift)
-	if anchor_object is PhysicalBox and !anchor_object.stationary:
-		var anchor_box := anchor_object as PhysicalBox
-		anchor_box.resolve_velocity_difference_at_point(projected_vel_difference * that_fraction, anchor_position)
-		anchor_box.resolve_position_delta_at_point(-position_shift * that_fraction, anchor_position)
+	if position_shift.dot(projected_vel_difference) < 0:
+		node.resolve_velocity_difference_at_point(-projected_vel_difference * this_fraction, relative_shift)
+		if anchor_object is PhysicalBox and !anchor_object.stationary:
+			var anchor_box := anchor_object as PhysicalBox
+			anchor_box.resolve_velocity_difference_at_point(projected_vel_difference * that_fraction, anchor_position)

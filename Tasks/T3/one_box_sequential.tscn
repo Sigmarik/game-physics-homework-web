@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://rfmmwnsesvod"]
+
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_shs4j"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_dcxji"]
+[ext_resource type="Script" uid="uid://bqmq8qh5fvbkx" path="res://Tasks/T3/physical_box.gd" id="3_vgmjf"]
+[ext_resource type="Script" uid="uid://bygq0e7a2yvl0" path="res://Tasks/T3/bb_adjustable_mesh.gd" id="4_r7ol7"]
+[ext_resource type="Script" uid="uid://chujustyblqds" path="res://Tasks/T3/constraint_placer.gd" id="5_dhi63"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qq4pt"]
+size = Vector3(0.6982422, 1.2069855, 0.6865845)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_qq4pt"]
+size = Vector3(0.6982422, 1.2069855, 0.6865845)
+
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_shs4j")]
+script = ExtResource("2_dcxji")
+constraint_mode = 3
+
+[node name="RigidBody3D" type="RigidBody3D" parent="." index="5" unique_id=1892616116]
+transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, -0.75393224, 0.66502523, 2.3841858e-07)
+freeze = true
+custom_integrator = true
+script = ExtResource("3_vgmjf")
+show_angular_velocity = false
+show_initial_angular_velocity = false
+initial_angular_velocity = Vector3(0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" index="0" unique_id=1690204462]
+mesh = SubResource("BoxMesh_qq4pt")
+script = ExtResource("4_r7ol7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" index="1" unique_id=1692838960]
+shape = SubResource("BoxShape3D_qq4pt")
+
+[node name="Placer" type="Node3D" parent="." index="6" unique_id=1302456579 node_paths=PackedStringArray("first_object")]
+script = ExtResource("5_dhi63")
+first_object = NodePath("../RigidBody3D")
+first_shift = Vector3(0.35, 0.605, 0.35)

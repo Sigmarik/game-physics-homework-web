@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://bpgfasdo3ha0v"]
+
+[ext_resource type="PackedScene" uid="uid://cuu6tmmuo2p3p" path="res://Tasks/T3/preset.tscn" id="1_dj5xm"]
+[ext_resource type="Script" uid="uid://bvc7qrclb8k4m" path="res://Tasks/T3/xPBD_integrator.gd" id="2_7aehq"]
+[ext_resource type="PackedScene" uid="uid://ey6pfk5qb52x" path="res://Tasks/T3/physical_box.tscn" id="3_tcr4t"]
+
+[node name="Preset" unique_id=356544197 instance=ExtResource("1_dj5xm")]
+script = ExtResource("2_7aehq")
+constraint_mode = 3
+collision_mode = 1
+
+[node name="RigidBody3D2" parent="." index="4" unique_id=697888693 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6954093, 0, -0.4327973)
+stationary = true
+size = Vector3(20, 1, 20)
+
+[node name="RigidBody3D3" parent="." index="5" unique_id=24563561 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.587046, 1.9343377, -0.38033986)
+size = Vector3(1, 1.7, 1.025)
+
+[node name="RigidBody3D4" parent="." index="6" unique_id=502659277 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16529047, 4.308063, -0.38033986)
+size = Vector3(1, 1.7, 1.025)
+
+[node name="RigidBody3D5" parent="." index="7" unique_id=2128822767 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9040228, 2.0043852, -0.38033986)
+size = Vector3(1, 0.86, 1.025)
+
+[node name="RigidBody3D6" parent="." index="8" unique_id=404118998 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(-0.65504426, 0, -0.7555905, 0, 1, 0, 0.7555905, 0, -0.65504426, 0.650599, 1.9343377, 1.4796894)
+size = Vector3(1, 1.7, 1.025)
+
+[node name="RigidBody3D7" parent="." index="9" unique_id=1428992025 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(-0.65504426, 0, -0.7555905, 0, 1, 0, 0.7555905, 0, -0.65504426, 0.15778531, 4.308063, 2.0481477)
+size = Vector3(1, 1.7, 1.025)
+
+[node name="RigidBody3D8" parent="." index="10" unique_id=1830131891 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(-0.65504426, 0, -0.7555905, 0, 1, 0, 0.7555905, 0, -0.65504426, -0.32611707, 2.0043852, 2.6063268)
+size = Vector3(1, 0.86, 1.025)
+
+[node name="RigidBody3D9" parent="." index="11" unique_id=981498652 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(0.33175057, -0.8622663, 0.38267273, -0.5648226, -0.5064552, -0.65152025, 0.7555905, 0, -0.65504426, -0.59256375, 6.995871, 0.6436192)
+size = Vector3(1, 1.7, 1.025)
+
+[node name="RigidBody3D10" parent="." index="12" unique_id=779244349 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(0.33175057, -0.8622663, 0.38267273, -0.5648226, -0.5064552, -0.65152025, 0.7555905, 0, -0.65504426, -2.389759, 5.368749, 1.2120775)
+size = Vector3(1, 1.7, 1.025)
+
+[node name="RigidBody3D11" parent="." index="13" unique_id=1143854941 instance=ExtResource("3_tcr4t")]
+transform = Transform3D(0.33175057, -0.8622663, 0.38267273, -0.5648226, -0.5064552, -0.65152025, 0.7555905, 0, -0.65504426, -0.15830034, 6.118206, 1.7702566)
+size = Vector3(1, 0.86, 1.025)

@@ -27,10 +27,10 @@ func get_positional_gradient(node: PhysicalBox) -> Vector3:
 	var delta := get_anchor_pos() - global_pivot
 	var dist := delta.length()
 
-	if dist - allowed_length > 1e-9:
-		return -delta / dist * abs(pivot_shift.normalized().dot(delta.normalized()))
+	if dist < 1e-9:
+		return Vector3.ZERO
 
-	return Vector3.ZERO
+	return -delta / dist
 
 func get_angular_gradient(node: PhysicalBox) -> Vector3:
 	var pivot_shift := node.global_basis * relative_shift
@@ -71,17 +71,17 @@ func apply_sequential_impulses(node : PhysicalBox) -> void:
 
 	var projected_vel_difference := relative_velocity.project(normal)
 
-	# DebugDraw3D.draw_arrow(global_pivot, global_pivot - position_shift, Color.BLUE, 0.1, true)
-	node.resolve_position_delta_at_point(-position_shift * this_fraction, relative_shift)
+	node.resolve_shift_at_point(-position_shift * this_fraction, relative_shift)
 	if anchor_object is PhysicalBox and !anchor_object.stationary:
 		var anchor_box := anchor_object as PhysicalBox
-		anchor_box.resolve_position_delta_at_point(position_shift * that_fraction, anchor_position)
+		anchor_box.resolve_shift_at_point(position_shift * that_fraction, anchor_position)
 
 	if (projected_vel_difference.dot(delta) > 0) == (delta.length() > allowed_length):
 		return
+
+	# DebugDraw3D.draw_arrow(node.global_transform * relative_shift, node.global_transform * relative_shift - projected_vel_difference * this_fraction, Color.WHITE, 0.1, true)
 
 	node.resolve_velocity_difference_at_point(-projected_vel_difference * this_fraction, relative_shift)
 	if anchor_object is PhysicalBox and !anchor_object.stationary:
 		var anchor_box := anchor_object as PhysicalBox
 		anchor_box.resolve_velocity_difference_at_point(projected_vel_difference * that_fraction, anchor_position)
-		anchor_box.resolve_position_delta_at_point(-position_shift * that_fraction, anchor_position)

@@ -117,11 +117,13 @@ func _physics_process(delta: float) -> void:
 			body.iterate_soft_constraints(delta)
 			body.update_velocities(delta)
 	elif constraint_mode == ConstraintResolutionMode.sequential_impulses:
-		for idx in range(50):
+		for idx in range(10):
 			for body in bodies:
 				if body.stationary: continue
 				body.resolve_constraints_using_sequential_impulses()
-				body.update_velocities(delta)
+		for body in bodies:
+			body.custom_velocity *= 0.995
+			body.custom_angular_velocity *= 0.995
 
 	
 	if constraint_mode != ConstraintResolutionMode.sequential_impulses:

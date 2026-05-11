@@ -319,38 +319,34 @@ func apply_impulse_at_point(impulse : Vector3, local_point : Vector3) -> void:
 	custom_angular_velocity += get_inverse_inertia_ws() * angular_impulse
 
 func resolve_shift_at_point(shift : Vector3, local_point : Vector3) -> void:
+	# DebugDraw3D.draw_arrow(global_transform * local_point, global_transform * local_point + shift, Color.WHITE, 0.1, true)
 	var global_arm := global_basis * local_point
-	var linear_impulse = shift.normalized() * abs(shift.dot(global_arm.normalized()))
-	var angular_vel_change := -shift.cross(global_arm)
-	global_position += linear_impulse
+	var linear_shift = shift.project(global_arm)
+	global_position += linear_shift
+	# DebugDraw3D.draw_arrow(global_transform * local_point, global_transform * local_point + linear_shift, Color.RED, 0.1, true)
 	
-	if angular_vel_change.length_squared() > 0:
+	if global_arm.length_squared() > 0:
+		var angular_vel_change := -shift.cross(global_arm) / global_arm.length_squared()
 		var impulsed_change := get_inverse_inertia_ws() * angular_vel_change
 		var corrective_multiplier := angular_vel_change.length() / impulsed_change.dot(angular_vel_change.normalized())
-		apply_rot_difference(impulsed_change * corrective_multiplier)
+		var corrected_angular_vel_change := impulsed_change * corrective_multiplier
+		apply_rot_difference(corrected_angular_vel_change)
+
+		# DebugDraw3D.draw_arrow(global_transform * local_point, global_transform * local_point + corrected_angular_vel_change.cross(global_arm), Color.BLUE, 0.1, true)
 
 func resolve_velocity_difference_at_point(velocity_change : Vector3, local_point : Vector3) -> void:
-	# custom_velocity += velocity_change
 	var global_arm := global_basis * local_point
-	var linear_impulse = velocity_change.normalized() * abs(velocity_change.dot(global_arm.normalized()))
-	var angular_vel_change := -velocity_change.cross(global_arm)
-	custom_velocity += linear_impulse
+	# var linear_impulse = velocity_change.project(global_arm)
+	custom_velocity += velocity_change
 	
-	if angular_vel_change.length_squared() > 0:
+	if global_arm.length_squared() > 1e-9 and velocity_change.cross(global_arm).length_squared() > 1e-9:
+		var angular_vel_change := -velocity_change.cross(global_arm) / global_arm.length()
 		var impulsed_change := get_inverse_inertia_ws() * angular_vel_change
 		var corrective_multiplier := angular_vel_change.length() / impulsed_change.dot(angular_vel_change.normalized())
-		custom_angular_velocity += impulsed_change * corrective_multiplier
+		var corrected_angular_vel_change := impulsed_change * corrective_multiplier
+		custom_angular_velocity += corrected_angular_vel_change
 
-func resolve_position_delta_at_point(pos_change : Vector3, local_point : Vector3) -> void:
-	var global_arm := global_basis * local_point
-	var linear_impulse = pos_change.normalized() * abs(pos_change.dot(global_arm.normalized()))
-	var angular_vel_change := -pos_change.cross(global_arm)
-	global_position += linear_impulse
-	
-	if angular_vel_change.length_squared() > 0:
-		var impulsed_change := get_inverse_inertia_ws() * angular_vel_change
-		var corrective_multiplier := angular_vel_change.length() / impulsed_change.dot(angular_vel_change.normalized())
-		apply_rot_difference(impulsed_change * corrective_multiplier)
+		# DebugDraw3D.draw_arrow(global_transform * local_point, global_transform * local_point + corrected_angular_vel_change.cross(global_arm), Color.BLUE, 0.1, true)
 
 func get_velocity_at_point(local_point : Vector3) -> Vector3:
 	var global_arm := global_basis * local_point
