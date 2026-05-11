@@ -9,6 +9,8 @@ extends RigidBody3D
 @export var stationary = false
 var _size := Vector3(1, 1, 1)
 
+var grid_position := Vector3i.ZERO
+
 @export var size: Vector3 = Vector3(1, 1, 1):
     get:
         return _size
@@ -619,3 +621,28 @@ static func add_optional_collision_constraints(alpha: PhysicalBox, beta: Physica
 func update_velocities(delta : float) -> void:
     custom_angular_velocity = PhysicalBox.rotation_difference(old_basis, global_basis) / delta
     custom_velocity = (global_position - old_position) / delta
+
+
+func get_aabb() -> AABB:
+    # Get the 8 vertices of the box in global space
+    var vertices := get_vertices()
+    
+    # Initialize min/max with the first vertex
+    var min_point := vertices[0]
+    var max_point := vertices[0]
+    
+    # Find the bounds across all vertices
+    for vertex in vertices:
+        min_point = Vector3(
+            min(min_point.x, vertex.x),
+            min(min_point.y, vertex.y),
+            min(min_point.z, vertex.z)
+        )
+        max_point = Vector3(
+            max(max_point.x, vertex.x),
+            max(max_point.y, vertex.y),
+            max(max_point.z, vertex.z)
+        )
+    
+    # Return AABB constructed from min and max points
+    return AABB(min_point, max_point - min_point)

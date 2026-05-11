@@ -140,3 +140,25 @@ text = "T3.3 Collisions,
 Sequential Impulses"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/colliding_boxes_sequential.tscn"
+
+[node name="Button14" type="Button" parent="CanvasLayer" unique_id=560776775]
+offset_left = 784.0
+offset_top = 168.0
+offset_right = 956.0
+offset_bottom = 222.0
+tooltip_text = "Balls"
+text = "T3.3 Collisions,
+Spatial Grid"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/colliding_boxes_spatial_grid.tscn"
+
+[node name="Button15" type="Button" parent="CanvasLayer" unique_id=44366361]
+offset_left = 784.0
+offset_top = 240.0
+offset_right = 956.0
+offset_bottom = 294.0
+tooltip_text = "Balls"
+text = "T3.3 Collisions,
+O(N2) Reference"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/colliding_boxes_on2_reference.tscn"
