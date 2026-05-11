@@ -101,7 +101,7 @@ func _physics_process(delta: float) -> void:
 	detect_collisions()
 	
 	if constraint_mode == ConstraintResolutionMode.xPBD:
-		for idx in range(10):
+		for idx in range(15):
 			for body in bodies:
 				if body.stationary: continue
 				body.iterate_constraints_xpbd(delta)
@@ -110,18 +110,18 @@ func _physics_process(delta: float) -> void:
 		for body in bodies:
 			if body.stationary: continue
 			body.iterate_constraints_explicit(delta)
-			body.update_velocities(delta)
 	elif constraint_mode == ConstraintResolutionMode.soft_constraints:
 		for body in bodies:
 			if body.stationary: continue
 			body.iterate_soft_constraints(delta)
-			body.update_velocities(delta)
+			# body.update_velocities(delta)
 	elif constraint_mode == ConstraintResolutionMode.sequential_impulses:
-		for idx in range(10):
+		for idx in range(20):
 			for body in bodies:
 				if body.stationary: continue
 				body.resolve_constraints_using_sequential_impulses()
 		for body in bodies:
+			# Simulate a bit of damping present in XPBD
 			body.custom_velocity *= 0.995
 			body.custom_angular_velocity *= 0.995
 

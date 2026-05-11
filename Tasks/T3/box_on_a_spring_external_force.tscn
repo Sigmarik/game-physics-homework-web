@@ -13,10 +13,11 @@ size = Vector3(1, 2.994873, 1.6469727)
 script = ExtResource("2_fispy")
 constraint_mode = 1
 
-[node name="RigidBody3D" type="RigidBody3D" parent="." index="4" unique_id=1892616116]
+[node name="RigidBody3D" type="RigidBody3D" parent="." index="5" unique_id=1892616116]
 transform = Transform3D(0.4180415, 0.90842795, 0, -0.90842795, 0.4180415, 0, 0, 0, 1, -0.83803475, 1.149612, 0)
+freeze = true
+custom_integrator = true
 script = ExtResource("3_80omo")
-show_angular_velocity = false
 show_initial_angular_velocity = false
 initial_angular_velocity = Vector3(0, 0, 0)
 add_spring_constraint = true
