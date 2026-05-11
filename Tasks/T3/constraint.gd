@@ -6,6 +6,7 @@ var lambda : float = 0
 
 var compliance : float = 0.01
 var softness : float = 0.2
+var has_friction := false
 
 @abstract
 func get_constraint_value(node : PhysicalBox) -> float

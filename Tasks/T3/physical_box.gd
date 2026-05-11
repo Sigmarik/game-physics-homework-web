@@ -205,14 +205,6 @@ func get_implicit_gyroscopic_term(delta: float) -> Vector3:
 	return (omega_new - omega_old) / delta
 
 
-static func basis_to_rotation_vector(basis: Basis) -> Vector3:
-	# A Basis can contain scale, but a Quaternion represents a pure rotation.
-	# Using orthonormalized() removes scale and skew for an accurate conversion.
-	var quat := Quaternion(basis.orthonormalized())
-	# get_angle() returns the float, get_axis() returns the Vector3 (which is normalized).
-	return quat.get_axis() * quat.get_angle()
-
-
 static func rotation_vector_to_basis(rot_vec: Vector3) -> Basis:
 	var angle := rot_vec.length()
 	# A zero rotation shouldn't cause a zero-length axis error.
@@ -245,6 +237,8 @@ func iterate_constraints_xpbd(delta : float) -> void:
 		var shift := constraint.get_delta_and_update_lambda(self, delta)
 		linear_shift += shift.positional
 		rotation_shift += shift.angular
+		if constraint.has_friction:
+			constraint.apply_friction_adjustment(self, delta)
 	global_position += linear_shift
 	apply_rot_difference(rotation_shift)
 
@@ -323,6 +317,17 @@ func apply_impulse_at_point(impulse : Vector3, local_point : Vector3) -> void:
 	var angular_impulse := impulse.cross(global_arm)
 	custom_velocity += linear_impulse / mass
 	custom_angular_velocity += get_inverse_inertia_ws() * angular_impulse
+
+func resolve_shift_at_point(shift : Vector3, local_point : Vector3) -> void:
+	var global_arm := global_basis * local_point
+	var linear_impulse = shift.normalized() * abs(shift.dot(global_arm.normalized()))
+	var angular_vel_change := -shift.cross(global_arm)
+	global_position += linear_impulse
+	
+	if angular_vel_change.length_squared() > 0:
+		var impulsed_change := get_inverse_inertia_ws() * angular_vel_change
+		var corrective_multiplier := angular_vel_change.length() / impulsed_change.dot(angular_vel_change.normalized())
+		apply_rot_difference(impulsed_change * corrective_multiplier)
 
 func resolve_velocity_difference_at_point(velocity_change : Vector3, local_point : Vector3) -> void:
 	# custom_velocity += velocity_change
@@ -543,10 +548,10 @@ static func sat_edge_edge(alpha: PhysicalBox, beta: PhysicalBox) -> Array[Vector
 			var edge_idx_alpha := 0
 			var edge_idx_beta := 0
 			for idx in range(0, alpha_edges.size(), 2):
-				if alpha_edges[idx].dot(direction) > alpha_edges[edge_idx_alpha].dot(direction) and difference > 0: continue
+				if (alpha_edges[idx].dot(direction) > alpha_edges[edge_idx_alpha].dot(direction)) == (difference > 0): continue
 				edge_idx_alpha = idx
 			for idx in range(0, beta_edges.size(), 2):
-				if beta_edges[idx].dot(direction) < beta_edges[edge_idx_beta].dot(direction) and difference > 0: continue
+				if (beta_edges[idx].dot(direction) < beta_edges[edge_idx_beta].dot(direction)) == (difference > 0): continue
 				edge_idx_beta = idx
 
 			line_a_start = alpha_edges[edge_idx_alpha]
@@ -594,19 +599,31 @@ static func add_optional_collision_constraints(alpha: PhysicalBox, beta: Physica
 	var local_beta_point  := beta.global_transform.affine_inverse() * world_point_beta
 
 	# From alpha's view, anchor is beta's point
-	var ac = PivotConstraint.new()
+	var ac = DisplacementConstraint.new()
 	ac.anchor_object = beta
 	ac.anchor_position = local_beta_point
 	ac.relative_shift = local_alpha_point
-	ac.allowed_length = 0.0
-	ac.compliance = 0.00001
+	ac.world_normal = (world_point_beta - world_point_alpha).normalized()
+	ac.compliance = 0.001
+	ac.has_friction = true
 	alpha.temporary_constraints.append(ac)
 
 	# Symmetric constraint from beta's view
-	var bc = PivotConstraint.new()
+	var bc = DisplacementConstraint.new()
 	bc.anchor_object = alpha
 	bc.anchor_position = local_alpha_point
 	bc.relative_shift = local_beta_point
-	bc.allowed_length = 0.0
-	bc.compliance = 0.00001
+	bc.world_normal = (world_point_alpha - world_point_beta).normalized()
+	bc.compliance = 0.001
+	bc.has_friction = true
 	beta.temporary_constraints.append(bc)
+
+
+func update_velocities(delta : float) -> void:
+	custom_angular_velocity = PhysicalBox.rotation_difference(old_basis, global_basis) / delta
+	custom_velocity = (global_position - old_position) / delta
+
+	if custom_angular_velocity.length() < 10 * delta:
+		custom_angular_velocity = Vector3.ZERO
+	if custom_velocity.length() < 2 * delta:
+		custom_velocity = Vector3.ZERO

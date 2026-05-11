@@ -125,7 +125,7 @@ offset_top = 496.0
 offset_right = 564.0
 offset_bottom = 550.0
 tooltip_text = "Balls"
-text = "T3.2 Collisions,
+text = "T3.3 Collisions,
 XPDB"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/colliding_boxes.tscn"

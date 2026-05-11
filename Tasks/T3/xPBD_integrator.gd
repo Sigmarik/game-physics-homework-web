@@ -105,23 +105,26 @@ func _physics_process(delta: float) -> void:
 			for body in bodies:
 				if body.stationary: continue
 				body.iterate_constraints_xpbd(delta)
+				body.update_velocities(delta)
 	elif constraint_mode == ConstraintResolutionMode.explicit_forces:
 		for body in bodies:
 			if body.stationary: continue
 			body.iterate_constraints_explicit(delta)
+			body.update_velocities(delta)
 	elif constraint_mode == ConstraintResolutionMode.soft_constraints:
 		for body in bodies:
 			if body.stationary: continue
 			body.iterate_soft_constraints(delta)
+			body.update_velocities(delta)
 	elif constraint_mode == ConstraintResolutionMode.sequential_impulses:
 		for idx in range(50):
 			for body in bodies:
 				if body.stationary: continue
 				body.resolve_constraints_using_sequential_impulses()
+				body.update_velocities(delta)
 
 	
 	if constraint_mode != ConstraintResolutionMode.sequential_impulses:
 		for body in bodies:
 			if body.stationary: continue
-			body.custom_angular_velocity = PhysicalBox.rotation_difference(body.old_basis, body.global_basis) / delta
-			body.custom_velocity = (body.global_position - body.old_position) / delta
+			body.update_velocities(delta)
