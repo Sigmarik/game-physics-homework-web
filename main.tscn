@@ -76,10 +76,10 @@ script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/dzhanibekov_implicit.tscn"
 
 [node name="Button8" type="Button" parent="CanvasLayer" unique_id=1641964081]
-offset_left = 392.0
-offset_top = 208.0
-offset_right = 556.0
-offset_bottom = 248.0
+offset_left = 584.0
+offset_top = 24.0
+offset_right = 756.0
+offset_bottom = 78.0
 tooltip_text = "Balls"
 text = "T3.2 One Box,
 External Force Spring"
@@ -87,10 +87,10 @@ script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/box_on_a_spring_external_force.tscn"
 
 [node name="Button9" type="Button" parent="CanvasLayer" unique_id=1800835252]
-offset_left = 392.0
-offset_top = 280.0
-offset_right = 564.0
-offset_bottom = 334.0
+offset_left = 584.0
+offset_top = 96.0
+offset_right = 756.0
+offset_bottom = 150.0
 tooltip_text = "Balls"
 text = "T3.2 One Box,
 Soft Constraints"
@@ -98,10 +98,10 @@ script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/box_on_a_spring_soft_constraints.tscn"
 
 [node name="Button10" type="Button" parent="CanvasLayer" unique_id=1497011824]
-offset_left = 392.0
-offset_top = 352.0
-offset_right = 564.0
-offset_bottom = 406.0
+offset_left = 584.0
+offset_top = 168.0
+offset_right = 756.0
+offset_bottom = 222.0
 tooltip_text = "Balls"
 text = "T3.2 Two Boxes,
 XPBD"
@@ -109,10 +109,10 @@ script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/two_boxes_xpbd.tscn"
 
 [node name="Button11" type="Button" parent="CanvasLayer" unique_id=2132098159]
-offset_left = 392.0
-offset_top = 424.0
-offset_right = 564.0
-offset_bottom = 478.0
+offset_left = 584.0
+offset_top = 240.0
+offset_right = 756.0
+offset_bottom = 294.0
 tooltip_text = "Balls"
 text = "T3.2 Two Boxes,
 Sequential Impulses"
@@ -120,12 +120,23 @@ script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/two_boxes_sequential.tscn"
 
 [node name="Button12" type="Button" parent="CanvasLayer" unique_id=2108648456]
-offset_left = 392.0
-offset_top = 496.0
-offset_right = 564.0
-offset_bottom = 550.0
+offset_left = 784.0
+offset_top = 24.0
+offset_right = 956.0
+offset_bottom = 78.0
 tooltip_text = "Balls"
 text = "T3.3 Collisions,
 XPDB"
 script = ExtResource("1_ig7tw")
 next_level_scene = "res://Tasks/T3/colliding_boxes_xpbd.tscn"
+
+[node name="Button13" type="Button" parent="CanvasLayer" unique_id=834279167]
+offset_left = 784.0
+offset_top = 96.0
+offset_right = 956.0
+offset_bottom = 150.0
+tooltip_text = "Balls"
+text = "T3.3 Collisions,
+Sequential Impulses"
+script = ExtResource("1_ig7tw")
+next_level_scene = "res://Tasks/T3/colliding_boxes_sequential.tscn"
